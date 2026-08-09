@@ -1,18 +1,9 @@
 """
 Modèle des moteurs à courant continu de la plateforme YahBoom.
 
-POURQUOI CE FICHIER EXISTE
---------------------------
-Le robot n'est pas piloté par un couple mais par un RAPPORT CYCLIQUE (PWM) :
-le pont en H applique une tension, et le couple qui en résulte dépend AUSSI de
-la vitesse de rotation, à cause de la force contre-électromotrice (fcem).
-Supposer un couple constant à toute vitesse est faux et rend les gains trouvés
-en simulation inutilisables sur le robot réel.
-
 MODÈLE À IMPLÉMENTER
 --------------------
-Moto-réducteur ramené à l'arbre de sortie (les constantes intègrent déjà le
-réducteur et son rendement) :
+Moto-réducteur ramené à l'arbre de sortie :
 
     V   = duty * V_alim              tension appliquée par le pont en H
     i   = (V - Ke * omega) / Ra      courant d'induit
@@ -47,32 +38,28 @@ class Motor:
 
         # TODO 2 : résistance d'induit Ra.
         #   À l'arrêt (rotor bloqué) la fcem est nulle, donc toute la tension
-        #   nominale se retrouve aux bornes de la résistance : V_nom = Ra * i_blocage
+        #   nominale se retrouve aux bornes de la résistance
         self.Ra = None
 
         # TODO 3 : constante de fcem Ke (V.s/rad).
-        #   À vide, le moteur tourne à omega_vide en consommant i_vide :
-        #   V_nom = Ra * i_vide + Ke * omega_vide
+        #   À vide, le moteur tourne à omega_vide en consommant i_vide
         self.Ke = None
 
         # TODO 4 : constante de couple Kt (N.m/A).
         #   Au blocage, le couple utile est produit par le courant utile,
         #   c'est-à-dire le courant de blocage MOINS le courant qui ne sert
-        #   qu'à vaincre les frottements internes (i_vide) :
-        #   tau_blocage = Kt * (i_blocage - i_vide)
+        #   qu'à vaincre les frottements internes (i_vide)
         self.Kt = None
 
         # --- Grandeurs équivalentes pour l'ENSEMBLE des moteurs ---
         # TODO 5 : couple total par unité de rapport cyclique, à l'arrêt (N.m).
-        #   Repartir de tau = Kt * (duty * V_alim) / Ra, pour n_motors moteurs.
         self.K_duty = None
 
         # TODO 6 : amortissement dû à la fcem (N.m.s/rad).
-        #   C'est le terme qui fait chuter le couple quand la vitesse augmente :
-        #   tau = K_duty * duty - C_bemf * omega
+        #   C'est le terme qui fait chuter le couple quand la vitesse augmente 
         self.C_bemf = None
 
-        # Rendement implicite du réducteur (indicatif) : en unités SI, Kt = eta * Ke.
+        # Rendement implicite du réducteur : en unités SI, Kt = eta * Ke.
         # Contrôle de cohérence : on doit trouver quelque chose entre 50 et 80 %.
         self.rendement = None   # TODO 7
 

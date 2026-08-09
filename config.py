@@ -84,12 +84,12 @@ t_max = 10.0   # Durée par défaut d'une simulation (s)
 # Optimizers/ (fonctions update_config_file). Vous pouvez aussi les régler à la
 # main pour comprendre l'effet de chaque terme.
 
-# --- PID : boucle interne (angle), la "rapide" ---
-PID_Kp = 0.0    # TODO : à régler (à la main puis par pid_optimizer.py)
+# --- PID : boucle interne (angle) ---
+PID_Kp = 0.0    # TODO : à régler
 PID_Ki = 0.0
 PID_Kd = 0.0
 
-# --- PID : boucle externe (position), la "lente" ---
+# --- PID : boucle externe (position) ---
 # Attention : Kp doit rester petit, sinon la boucle externe demande des angles
 # cibles énormes et le robot tombe en essayant de les atteindre.
 PID_Pos_Kp = 0.0    # TODO
@@ -98,7 +98,7 @@ PID_Pos_Kd = 0.0    # TODO
 
 # --- LQR : matrices de pondération ---
 # Q pénalise les écarts d'état [x, dx, theta, dtheta], R pénalise l'effort moteur.
-LQR_Q = np.diag([1.0, 1.0, 1.0, 1.0])   # TODO : à régler (lqr_optimizer.py)
+LQR_Q = np.diag([1.0, 1.0, 1.0, 1.0])   # TODO 
 LQR_R = 1.0                             # TODO
 
 # --- LOGIQUE FLOUE : boucle interne (angle -> commande PWM) ---
@@ -119,15 +119,16 @@ FUZZY_TARGET_THETA_MAX = 0.17     # Saturation de l'angle cible (rad), ~10 degr�
 # =====================================================================
 # 5. APPRENTISSAGE PAR RENFORCEMENT (SAC)
 # =====================================================================
-# Hyperparamètres du Soft Actor-Critic (voir Optimizers/sac_trainer.py).
+# Hyperparamètres du Soft Actor-Critic #TODO.
 
 SAC_POLICY_PATH = "Ressources/sac_policy.pt"  # Où sauvegarder / charger la politique
-SAC_HIDDEN_SIZE = 256        # Neurones par couche cachée
-SAC_LR = 3e-4                # Pas d'apprentissage
-SAC_GAMMA = 0.99             # Facteur d'actualisation
-SAC_TAU = 0.005              # Coefficient de mise à jour douce des réseaux cibles
-SAC_BATCH_SIZE = 256         # Taille des mini-lots tirés du buffer
-SAC_BUFFER_SIZE = 200_000    # Capacité du replay buffer
-SAC_TOTAL_STEPS = 200_000    # TODO : nombre de pas d'entraînement (à ajuster)
-SAC_EPISODE_STEPS = 1000     # Longueur maximale d'un épisode
-SAC_SEED = 42                # Graine aléatoire (reproductibilité)
+SAC_CURRICULUM = None          
+SAC_HIDDEN_SIZE = None        # Neurones par couche cachée
+SAC_LR = None                # Pas d'apprentissage
+SAC_GAMMA = None             # Facteur d'actualisation
+SAC_TAU = None               # Coefficient de mise à jour douce des réseaux cibles
+SAC_BATCH_SIZE = None         # Taille des mini-lots tirés du buffer
+SAC_BUFFER_SIZE = None    # Capacité du replay buffer
+SAC_TOTAL_STEPS = None    # Nombre de pas d'entraînement
+SAC_EPISODE_STEPS = None     # Longueur maximale d'un épisode
+SAC_SEED = None                # Graine aléatoire (reproductibilité)

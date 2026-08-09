@@ -1,7 +1,5 @@
 """
-Point d'entrée du projet "Robot Auto-Balanceur".
-
-C'est LE fichier que l'on lance pour faire tourner une simulation :
+C'est le fichier que l'on lance pour faire tourner une simulation :
 
     python main.py
 
@@ -10,8 +8,6 @@ configuration du lancement et de la passer au MainController, qui orchestre
 tout le reste (création du contrôleur, boucle de simulation, courbes,
 animation).
 
-Ce fichier est fourni COMPLET : il n'y a rien à implémenter ici, seulement
-des réglages à modifier pour tester votre travail.
 """
 
 import numpy as np
@@ -21,7 +17,7 @@ from Controllers.main_controller import MainController
 # --- CONFIGURATION DU LANCEMENT ---
 
 # Contrôleur utilisé pour la simulation :
-#   "DUMMY" : contrôleur réflexe fourni en exemple (à utiliser pour vérifier
+#   "DUMMY" : contrôleur fourni en exemple (à utiliser pour vérifier
 #             que la physique et la visualisation fonctionnent)
 #   "PID"   : cascade PID (boucle position + boucle angle)
 #   "LQR"   : retour d'état optimal

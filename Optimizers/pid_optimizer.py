@@ -1,13 +1,7 @@
 """
 Réglage automatique de la cascade PID par la méthode "twiddle".
 
-POURQUOI UN OPTIMISEUR
-----------------------
-Régler cinq gains à la main (trois pour l'angle, deux pour la position) est
-long et peu reproductible. On automatise donc : on simule, on note le résultat
-avec une fonction de coût, et on cherche les gains qui minimisent ce coût.
-
-TWIDDLE (recherche par coordonnées à pas adaptatif)
+TWIDDLE
 ---------------------------------------------------
 Algorithme très simple, sans dérivée :
 
@@ -19,7 +13,7 @@ Algorithme très simple, sans dérivée :
             sinon                -> revenir en arrière et RÉDUIRE le pas (dp_i *= 0.9)
     recommencer tant que la somme des pas dépasse une tolérance
 
-DEUX PIÈGES À ÉVITER (ils ont vraiment coûté du temps sur ce projet)
+DEUX PIÈGES À ÉVITER
 --------------------------------------------------------------------
   1. Optimiser les deux boucles SÉPARÉMENT. Elles interagissent : un gain de
      position excellent avec une boucle d'angle donnée peut déstabiliser une
@@ -62,9 +56,7 @@ class AutoTuner:
         self.sim_time = sim_time
         self.u_max = config.PWM_MAX
 
-        # États initiaux supplémentaires pour l'évaluation robuste (piège n°2).
-        # Les mêmes que ceux du FuzzyAutoTuner, pour que la comparaison entre
-        # méthodes reste équitable.
+        # États initiaux supplémentaires pour l'évaluation robuste.
         self.etats_robustesse = [
             np.array([-0.3, 0.0, 0.15, 0.0]),
             np.array([0.0, 0.0, 0.05, 0.0]),
@@ -116,15 +108,13 @@ class AutoTuner:
         """
         Transforme les métriques en un seul nombre : le coût.
 
-        Les pondérations traduisent vos priorités. Celles utilisées dans ce
-        projet (à reprendre à l'identique dans les trois optimiseurs pour que
-        la comparaison PID / LQR / flou ait un sens) :
+        Les pondérations traduisent nos priorités :
 
-            10   * settling_time_theta      5   * settling_time_x
-            50   * total_angle_error        10  * total_pos_error
-            0.01 * total_effort             20  * max_overshoot_theta
-            300  * osc_theta                100 * osc_x
-            300  * mean_x_tail
+            poids_1   * settling_time_theta      poids_2   * settling_time_x
+            poids_3   * total_angle_error        poids_4   * total_pos_error
+            poids_5   * total_effort             poids_6   * max_overshoot_theta
+            poids_7   * osc_theta                poids_8   * osc_x
+            poids_9   * mean_x_tail
 
         Cas de la CHUTE : ne surtout pas renvoyer une constante. L'erreur
         cumulée grandit avec le temps, donc une pénalité fixe apprendrait à
@@ -149,7 +139,7 @@ class AutoTuner:
 
     def twiddle(self, tol=0.05, verbose=True):
         """
-        Boucle principale de l'algorithme (voir l'en-tête du fichier).
+        Boucle principale de l'algorithme.
 
         Returns:
             list: les cinq gains optimisés
@@ -162,10 +152,8 @@ class AutoTuner:
 
 def update_config_file(kp, ki, kd, pos_kp=None, pos_kd=None, config_path="config.py"):
     """
-    Réécrit les gains PID dans config.py (fourni).
+    Réécrit les gains PID dans config.py.
 
-    Le fichier est relu ligne à ligne et seules les lignes concernées sont
-    remplacées : commentaires et mise en page sont préservés.
     """
     print(">>> Sauvegarde des nouveaux gains dans config.py...")
 

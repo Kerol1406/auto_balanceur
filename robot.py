@@ -63,8 +63,8 @@ class Robot:
         """
         Couple délivré par les moteurs pour un rapport cyclique donné.
 
-        ATTENTION au piège : les moteurs sont montés ENTRE le châssis (qui
-        bascule) et les roues. La vitesse vue par l'arbre moteur n'est donc pas
+        Les moteurs sont montés ENTRE le châssis (qui bascule) et les roues.
+        La vitesse vue par l'arbre moteur n'est donc pas
         la vitesse de rotation des roues dans le repère du sol, mais leur
         vitesse RELATIVE au corps.
 
@@ -77,7 +77,7 @@ class Robot:
 
     def derivarives(self, state, duty):
         """
-        Dérivées de l'état : c'est ici que réside toute la physique.
+        Dérivées de l'état
 
         Args:
             state (array): [x, dx, theta, dtheta]
@@ -95,8 +95,7 @@ class Robot:
         # TODO 6 : construire le vecteur des forces généralisées [Qx, Qtheta]
 
         # TODO 7 : résoudre le système linéaire pour obtenir [ddx, ddtheta].
-        #          Utiliser np.linalg.solve (ne JAMAIS inverser la matrice
-        #          explicitement : c'est plus lent et moins précis).
+        #          Utiliser np.linalg.solve.
 
         # TODO 8 : renvoyer np.array([dx, ddx, dtheta, ddtheta])
         raise NotImplementedError("robot.derivarives : à implémenter")
@@ -104,16 +103,6 @@ class Robot:
     def step(self, state, duty, dt):
         """
         Avance la simulation d'un pas de temps par Runge-Kutta d'ordre 4 (RK4).
-
-        Pourquoi RK4 et pas la méthode d'Euler : le pendule inversé est un
-        système raide et instable ; Euler accumule une erreur qui fait diverger
-        la simulation (ou, pire, qui stabilise artificiellement un robot qui
-        devrait tomber).
-
-        Le rapport cyclique est maintenu CONSTANT sur tout le pas (blocage
-        d'ordre zéro, comme le fait réellement le timer du microcontrôleur) ;
-        le couple, lui, est recalculé à chaque sous-étape car il dépend de la
-        vitesse.
 
         Args:
             state (array): état à l'instant t

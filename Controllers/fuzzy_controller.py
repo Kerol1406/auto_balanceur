@@ -1,24 +1,13 @@
 """
-Contrôleur à logique floue (méthode de Mamdani).
-
-IDÉE
-----
-Plutôt que d'écrire une équation, on écrit le raisonnement d'un humain qui
-tiendrait un balai en équilibre sur sa main :
-
-    « SI le robot penche BEAUCOUP à droite ET qu'il tombe encore à droite,
-      ALORS j'avance FORT à droite. »
-
-Trois étages :
+Contrôleur à logique floue.
 
   1. FUZZIFICATION   : convertir les mesures (angle en degrés, vitesse
                        angulaire en rad/s) en degrés d'appartenance à des
                        classes floues ("un peu à gauche", "très à droite"...).
-                       Une même mesure appartient à plusieurs classes à la fois.
+                       Une même mesure peut appartenir à plusieurs classes à la fois.
 
-  2. INFÉRENCE       : appliquer la table de règles. Chez Mamdani, le ET est un
-                       MIN (une règle ne vaut que par son maillon le plus
-                       faible) et l'agrégation des règles menant à la même
+  2. INFÉRENCE       : appliquer la table de règles. Le ET est un
+                       MIN et l'agrégation des règles menant à la même
                        conclusion est un MAX.
 
   3. DÉFUZZIFICATION : repasser du flou au net. On utilise ici la méthode des
@@ -35,8 +24,7 @@ DEUX RÉGLAGES CONTINUS (ceux que l'optimiseur ajustera)
                      boucle interne ce sont des rapports cycliques (±1 max) ;
                      pour la boucle externe, des angles cibles en radians.
 
-La table de règles et la forme des fonctions d'appartenance, elles, restent
-FIXES : c'est l'expertise, elle ne s'optimise pas.
+La table de règles et la forme des fonctions d'appartenance, restent fixes.
 
 À COMPLÉTER : voir les TODO.
 """
@@ -52,19 +40,13 @@ class FuzzyController:
     # Doucement, Droite Vite.
     OUTPUT_LABELS = ['GV', 'GD', 'R', 'DD', 'DV']
 
-    # TODO 1 : écrire la table de règles (le "carnet" du pilote).
+    # TODO 1 : écrire la table de règles.
     #
     #   lignes   = classes de la vitesse angulaire [TED, TD, E, TG, TEG]
     #              (Tombe Extrême Droite ... Équilibre ... Tombe Extrême Gauche)
     #   colonnes = classes de l'angle              [EG,  G,  C, D,  ED ]
     #              (Extrême Gauche ... Centre ... Extrême Droite)
     #   valeur   = INDICE de la classe de sortie dans OUTPUT_LABELS (0 à 4)
-    #
-    # Raisonnement attendu : plus le robot penche à droite, plus il faut aller
-    # vite à droite ; la vitesse angulaire vient nuancer la décision (si le
-    # robot penche à droite mais revient déjà vers le centre, inutile d'en
-    # rajouter). La ligne "Équilibre" ne doit PAS être neutre partout, sinon on
-    # crée une zone morte et le robot se met à osciller.
     #
     #   RULE_TABLE = np.array([
     #       # EG  G  C  D  ED
@@ -108,26 +90,8 @@ class FuzzyController:
         """
         Étage 1 : degrés d'appartenance des deux entrées.
 
-        Fonctions d'appartenance TRIANGULAIRES / TRAPÉZOÏDALES, définies par
-        morceaux. Spécification à respecter (univers de discours après
-        application des input_gains) :
-
-        Entrée 1 — angle, en degrés, classes [EG, G, C, D, ED] :
-            EG : vaut 1 en dessous de -20, descend linéairement de 1 à 0 entre -20 et -10
-            G  : monte de 0 à 1 entre -20 et -10, redescend de 1 à 0 entre -10 et 0
-            C  : monte de 0 à 1 entre -3 et 0, redescend de 1 à 0 entre 0 et +3
-            D  : symétrique de G
-            ED : symétrique de EG
-
-        Entrée 2 — vitesse angulaire, en rad/s, classes [TED, TD, E, TG, TEG] :
-            mêmes formes, avec les points de cassure -3, -1.5, -0.5, 0, +0.5, +1.5, +3
-
-        Attention aux conventions de signe : dans cette table, une vitesse
-        NÉGATIVE correspond à "tombe à droite". C'est main_controller qui se
-        charge d'envoyer -dtheta pour que les deux entrées soient cohérentes.
-
         Args:
-            input_value: [entrée 1, entrée 2] déjà multipliées par les gains
+            input_value: [entrée 1, entrée 2]
 
         Returns:
             np.ndarray de forme (2, 5) : ligne 0 = appartenances de l'entrée 1,
@@ -138,15 +102,12 @@ class FuzzyController:
         # TODO 3 : écrire la fonction d'appartenance de l'entrée 2 (5 classes)
 
         # TODO 4 : renvoyer le tableau (2, 5)
-        #
-        # Vérification utile : pour n'importe quelle entrée, la somme des cinq
-        # degrés d'appartenance doit rester proche de 1 dans les zones où deux
-        # triangles se recouvrent — sinon vos pentes ne se raccordent pas.
+
         raise NotImplementedError("FuzzyController.fuzzify : à implémenter")
 
     def inference(self, fuzzy_value):
         """
-        Étage 2 : inférence de Mamdani.
+        Étage 2 : inférence
 
         Pour chaque case (i, j) de la table de règles :
             force de la règle = min( mu_entree2[i], mu_entree1[j] )
@@ -178,7 +139,7 @@ class FuzzyController:
         """
         # TODO 6 : attention au cas où la somme des activations est nulle
         #          (aucune règle active) : une division par zéro ferait
-        #          planter la simulation. Que doit valoir la commande alors ?
+        #          planter la simulation.
         raise NotImplementedError("FuzzyController.defuzzify : à implémenter")
 
     # ------------------------------------------------------------------
@@ -313,12 +274,3 @@ def save_cascade_lookup_tables(inner_controller, outer_controller=None,
     # TODO 16 : créer le dossier, appeler extract_lookup_table sur chaque
     #           contrôleur, puis écrire le fichier de métadonnées
     raise NotImplementedError("save_cascade_lookup_tables : à implémenter")
-
-
-if __name__ == "__main__":
-    # Test rapide : robot penché à droite (10 deg) et qui tombe à droite (-1 rad/s).
-    # Attendu une fois le contrôleur implémenté : une commande nettement
-    # positive (il faut avancer à droite pour rattraper la chute).
-    controller = FuzzyController(state=[10.0, -1.0], verbose=True)
-    u = controller.compute_control()
-    print(f"Commande floue : u = {u:.3f}")

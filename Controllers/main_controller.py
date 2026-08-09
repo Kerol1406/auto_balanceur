@@ -1,15 +1,8 @@
 """
-Chef d'orchestre de la simulation.
-
-C'est le seul fichier qui connaît TOUS les autres. Son travail :
-
-    1. créer le contrôleur demandé (et lancer son optimiseur si on le souhaite)
-    2. dérouler la boucle de simulation pas par pas
-    3. enregistrer l'historique
-    4. tracer les courbes et lancer l'animation
-
-Il ne contient aucune physique et aucune loi de commande : ces deux choses
-vivent respectivement dans robot.py et dans les autres fichiers de Controllers/.
+1. créer le contrôleur demandé (et lancer son optimiseur si on le souhaite)
+2. dérouler la boucle de simulation pas par pas
+3. enregistrer l'historique
+4. tracer les courbes et lancer l'animation
 
 À COMPLÉTER : voir les TODO.
 """
@@ -25,7 +18,7 @@ from .dummy_controller import DummyController
 from .pid_controller import PID
 from .lqr_controller import LQR
 from .fuzzy_controller import FuzzyController, save_cascade_lookup_tables
-# from .sac_controller import SACController        # décommenter une fois PyTorch installé
+# from .sac_controller import SACController        
 
 from Optimizers import pid_optimizer
 from Optimizers import lqr_optimizer
@@ -44,7 +37,7 @@ class MainController:
         self.state = state
         self.target_state = target_state
         # Si défini, les courbes sont sauvegardées dans ce fichier au lieu
-        # d'être affichées (pratique pour les comparaisons automatiques).
+        # d'être affichées.
         self.save_plot_path = save_plot_path
 
         self.history = {'time': [], 'theta': [], 'x': [], 'u': [], 'target_theta': []}
@@ -57,34 +50,7 @@ class MainController:
         # =============================================================
         # TODO 1 : selon self.TYPE_CONTROLEUR, instancier ce qu'il faut.
         #
-        #   "DUMMY" : un DummyController (déjà écrit, sert de référence)
-        #
-        #   "PID"   : DEUX correcteurs PID montés en cascade
-        #               - pid_angle : gains config.PID_Kp / Ki / Kd
-        #               - pid_pos   : gains config.PID_Pos_Kp / Ki / Kd
-        #             Si FAIRE_AUTOTUNING : appeler pid_optimizer.run_optimization()
-        #             qui renvoie les cinq gains et les écrit dans config.py.
-        #
-        #   "LQR"   : un LQR(Q=config.LQR_Q, R=config.LQR_R).
-        #             Si FAIRE_AUTOTUNING : lqr_optimizer.LQRAutoTuner(...).optimize()
-        #             puis lqr_optimizer.update_config_file(resultat).
-        #             Penser à appeler check_stability() et à PRÉVENIR
-        #             l'utilisateur si le système bouclé n'est pas stable :
-        #             mieux vaut refuser de simuler que produire une courbe
-        #             qui n'a aucun sens.
-        #
-        #   "FUZZY" : DEUX FuzzyController (cascade "flou dans flou")
-        #               - interne : centres config.FUZZY_OUTPUT_CENTERS,
-        #                           gains   config.FUZZY_INPUT_GAINS
-        #               - externe : centres config.FUZZY_POS_OUTPUT_CENTERS,
-        #                           gains   config.FUZZY_POS_INPUT_GAINS
-        #             Si FAIRE_AUTOTUNING : fuzzy_optimizer.FuzzyAutoTuner(...).optimize()
-        #             Puis exporter les lookup tables : save_cascade_lookup_tables().
-        #
-        #   "SAC"   : un SACController (la politique doit avoir été entraînée
-        #             au préalable par Optimizers/sac_trainer.py).
-        #
-        #   Tout autre nom : lever une ValueError explicite.
+        #   
 
         # =============================================================
         # 2. INITIALISATION DE LA SIMULATION
@@ -119,9 +85,7 @@ class MainController:
         #           (voir la convention de signes dans fuzzy_controller.py).
         #
         #   b) saturer la commande : u = np.clip(u, -config.PWM_MAX, config.PWM_MAX).
-        #      Le pont en H ne peut pas dépasser 100 % de la tension batterie ;
-        #      oublier cette ligne donne des résultats de simulation impossibles
-        #      à reproduire sur le vrai robot.
+        #      Le pont en H ne peut pas dépasser 100 % de la tension batterie.
         #
         #   c) faire avancer la physique : state = bot.step(state, u, config.dt)
         #
@@ -144,10 +108,9 @@ class MainController:
 
     def plot_results(self, save_path=None):
         """
-        Trace les courbes de la simulation (fourni).
+        Trace les courbes de la simulation.
 
-        Deux graphiques : le suivi d'angle (réel contre cible, ce qui permet de
-        voir travailler la cascade) et la position au cours du temps.
+        Deux graphiques : le suivi d'angle (réel contre cible) et la position au cours du temps.
         """
         if save_path is None:
             save_path = self.save_plot_path
