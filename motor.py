@@ -31,37 +31,37 @@ class Motor:
 
         # Grandeurs de la fiche technique
         V_nom = config.MOTOR_V_NOM
-        omega_vide = None       # TODO 1 : convertir MOTOR_NOLOAD_SPEED_RPM (tr/min) en rad/s
+        omega_vide = 0.10472*config.MOTOR_NOLOAD_SPEED_RPM       # DONE 1 : convertir MOTOR_NOLOAD_SPEED_RPM (tr/min) en rad/s
         i_vide = config.MOTOR_NOLOAD_CURRENT
         tau_blocage = config.MOTOR_STALL_TORQUE
         i_blocage = config.MOTOR_STALL_CURRENT
 
-        # TODO 2 : résistance d'induit Ra.
+        # DONE 2 : résistance d'induit Ra.
         #   À l'arrêt (rotor bloqué) la fcem est nulle, donc toute la tension
         #   nominale se retrouve aux bornes de la résistance
-        self.Ra = None
+        self.Ra = V_nom/i_blocage 
 
-        # TODO 3 : constante de fcem Ke (V.s/rad).
+        # DONE 3 : constante de fcem Ke (V.s/rad).
         #   À vide, le moteur tourne à omega_vide en consommant i_vide
-        self.Ke = None
+        self.Ke = (V_nom - self.Ra*i_vide)/omega_vide
 
-        # TODO 4 : constante de couple Kt (N.m/A).
+        # DONE 4 : constante de couple Kt (N.m/A).
         #   Au blocage, le couple utile est produit par le courant utile,
         #   c'est-à-dire le courant de blocage MOINS le courant qui ne sert
         #   qu'à vaincre les frottements internes (i_vide)
-        self.Kt = None
+        self.Kt = tau_blocage / (i_blocage - i_vide)
 
         # --- Grandeurs équivalentes pour l'ENSEMBLE des moteurs ---
-        # TODO 5 : couple total par unité de rapport cyclique, à l'arrêt (N.m).
-        self.K_duty = None
+        # DONE 5 : couple total par unité de rapport cyclique, à l'arrêt (N.m).
+        self.K_duty = (self.n_motors * self.Kt * self.V_alim) / self.Ra
 
-        # TODO 6 : amortissement dû à la fcem (N.m.s/rad).
+        # DONE 6 : amortissement dû à la fcem (N.m.s/rad).
         #   C'est le terme qui fait chuter le couple quand la vitesse augmente 
-        self.C_bemf = None
+        self.C_bemf = (self.n_motors * self.Kt * self.Ke) / self.Ra
 
         # Rendement implicite du réducteur : en unités SI, Kt = eta * Ke.
         # Contrôle de cohérence : on doit trouver quelque chose entre 50 et 80 %.
-        self.rendement = None   # TODO 7
+        self.rendement = self.Kt / self.Ke   # DONE 7
 
     def torque(self, duty, omega):
         """
@@ -78,19 +78,26 @@ class Motor:
         Returns:
             float: couple en N.m
         """
-        # TODO 8 : saturer duty puis appliquer tau = K_duty * duty - C_bemf * omega
-        raise NotImplementedError("motor.torque : à implémenter")
+        if duty < -1 :
+            duty = -1
+        elif duty > 1 :
+            duty = 1
+        
+        # DONE 8 : saturer duty puis appliquer tau = K_duty * duty - C_bemf * omega
+        return self.K_duty * duty - self.C_bemf * omega
 
     def duty_max_utile(self, omega):
         """Rapport cyclique au-delà duquel le moteur ne fournit plus de couple."""
-        # TODO 9 : résoudre torque(duty, omega) = 0
-        raise NotImplementedError("motor.duty_max_utile : à implémenter")
+        
+        # DONE 9 : résoudre torque(duty, omega) = 0
+        return self.C_bemf * omega / self.K_duty
 
     def vitesse_max(self):
         """Vitesse linéaire maximale théorique du robot (m/s), à vide."""
-        # TODO 10 : à vide, la fcem équilibre la tension d'alimentation.
+        # DONE 10 : à vide, la fcem équilibre la tension d'alimentation.
+        
         #   En déduire omega puis la vitesse au sol (v = omega * R).
-        raise NotImplementedError("motor.vitesse_max : à implémenter")
+        return 0.10472*config.MOTOR_NOLOAD_SPEED_RPM  * config.R # Oméga vide utilisé
 
     def resume(self):
         """

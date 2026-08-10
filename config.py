@@ -23,25 +23,25 @@ g = 9.81
 # TODO : peser le robot. M = châssis + roues + moteurs (la partie "chariot"),
 #        m = tout ce qui se balance au-dessus de l'axe des roues (batterie,
 #        cartes, capteurs), m_roue = une seule roue.
-m_roue = None      # TODO : masse d'une roue (kg)
-M = None           # TODO : masse totale du chariot (kg)
-m = None           # TODO : masse du pendule / partie haute (kg)
-M_corps = None     # TODO : masse du corps sans les deux roues (utile pour l'inertie)
+m_roue = 0.046      # TODO : masse d'une roue (kg)
+M = 0.972           # TODO : masse totale du chariot (kg)
+m = 0.39           # TODO : masse du pendule / partie haute (kg)
+M_corps = 0.942     # TODO : masse du corps sans les deux roues (utile pour l'inertie)
 
 # --- Dimensions (m) ---
-d = None    # TODO : distance entre les deux roues (entraxe)
-h = None    # TODO : hauteur du corps du robot
-b = None    # TODO : demi-longueur du châssis
-l = None    # TODO : distance entre l'axe des roues et le centre de gravité du pendule
-R = None    # TODO : rayon des roues
+d = 0.17    # TODO : distance entre les deux roues (entraxe)
+h = 0.13959    # TODO : hauteur du corps du robot
+b = 0.06  # TODO : demi-longueur du châssis
+l = 0.01    # TODO : distance entre l'axe des roues et le centre de gravité du pendule
+R = 0.0325    # TODO : rayon des roues
 
 # --- Inerties (kg.m^2) ---
 # TODO : écrire les formules, ne pas mettre de nombre "magique".
 #   I : moment d'inertie du corps autour de son centre de gravité.
 #       Approximation d'une plaque rectangulaire : (1/12) * M_corps * (h^2 + b^2)
 #   J : moment d'inertie d'une roue, assimilée à un disque plein : 0.5 * m_roue * R^2
-I = None    # TODO
-J = None    # TODO
+I = (1/12) * M_corps * (h**2 + b**2)    # TODO
+J = 0.5 * m_roue * R**2    # TODO
 
 # --- Frottements visqueux ---
 bx = 0.1      # Frottement de roulement au sol (N.s/m)
@@ -57,13 +57,13 @@ btheta = 0.1  # Frottement dans l'articulation / les réducteurs (N.m.s/rad)
 
 MOTOR_MODELE = "JGB37-520 12V (1:30)"
 MOTOR_COUNT = 2               # Nombre de moteurs (deux roues motrices)
-MOTOR_V_ALIM = None           # TODO : tension de la batterie (V)
-MOTOR_V_NOM = None            # TODO : tension nominale de la fiche technique (V)
-MOTOR_NOLOAD_SPEED_RPM = None # TODO : vitesse à vide en sortie de réducteur (tr/min)
-MOTOR_NOLOAD_CURRENT = None   # TODO : courant à vide (A)
-MOTOR_STALL_TORQUE = None     # TODO : couple de blocage par moteur (N.m) - attention, les
+MOTOR_V_ALIM = 11.1          # TODO : tension de la batterie (V)
+MOTOR_V_NOM = 12.0           # TODO : tension nominale de la fiche technique (V)
+MOTOR_NOLOAD_SPEED_RPM = 333 # TODO : vitesse à vide en sortie de réducteur (tr/min)
+MOTOR_NOLOAD_CURRENT = 0.12   # TODO : courant à vide (A)
+MOTOR_STALL_TORQUE = 0.4905     # TODO : couple de blocage par moteur (N.m) - attention, les
                               #        fiches donnent des kg.cm : 1 kg.cm = 0.0981 N.m
-MOTOR_STALL_CURRENT = None    # TODO : courant de blocage (A)
+MOTOR_STALL_CURRENT = 2.3    # TODO : courant de blocage (A)
 
 # Saturation de la commande : rapport cyclique maximal utilisable
 PWM_MAX = 1.0
