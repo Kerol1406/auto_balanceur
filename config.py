@@ -26,13 +26,13 @@ g = 9.81
 m_roue = 0.046      # TODO : masse d'une roue (kg)
 M = 0.972           # TODO : masse totale du chariot (kg)
 m = 0.39           # TODO : masse du pendule / partie haute (kg)
-M_corps = 0.942     # TODO : masse du corps sans les deux roues (utile pour l'inertie)
+M_corps = M-2*m_roue     # TODO : masse du corps sans les deux roues (utile pour l'inertie)
 
 # --- Dimensions (m) ---
 d = 0.17    # TODO : distance entre les deux roues (entraxe)
-h = 0.13959    # TODO : hauteur du corps du robot
+h = 0.075    # TODO : hauteur du corps du robot
 b = 0.06  # TODO : demi-longueur du châssis
-l = 0.01    # TODO : distance entre l'axe des roues et le centre de gravité du pendule
+l = 0.075    # TODO : distance entre l'axe des roues et le centre de gravité du pendule
 R = 0.0325    # TODO : rayon des roues
 
 # --- Inerties (kg.m^2) ---
