@@ -50,6 +50,8 @@ class MainController:
         # =============================================================
         # TODO 1 : selon self.TYPE_CONTROLEUR, instancier ce qu'il faut.
         dummy_controller = DummyController() 
+        pid_controller = PID(config.PID_Kp,config.PID_Ki,config.PID_Kd,config.dt)
+
         #   
 
         # =============================================================
@@ -69,16 +71,19 @@ class MainController:
         for i in range(steps):
             if self.TYPE_CONTROLEUR == "DUMMY":
                 u = dummy_controller.compute(state,self.target_state)
-                u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
-                state = robot.step(state, u, config.dt)
-                if abs(state[2]) >= np.pi/2:
-                    print(f"Robot crashé à {i*config.dt:.2f}s 👾👾")
-                    break
-                self.history['time'].append(i*config.dt)
-                self.history['theta'].append(state[2])
-                self.history['x'].append(state[0])
-                self.history['u'].append(u)
-                self.history['target_theta'].append(self.target_state[2])               
+            elif self.TYPE_CONTROLEUR == "PID":
+                u = pid_controller.compute(self.target_state[2],self.state[2])
+                
+            u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
+            state = robot.step(state, u, config.dt)
+            if abs(state[2]) >= np.pi/2:
+                print(f"Robot crashé à {i*config.dt:.2f}s 👾👾")
+                break
+            self.history['time'].append(i*config.dt)
+            self.history['theta'].append(state[2])
+            self.history['x'].append(state[0])
+            self.history['u'].append(u)
+            self.history['target_theta'].append(self.target_state[2])               
 
         #   a) calculer la commande u selon le contrôleur choisi.
         #

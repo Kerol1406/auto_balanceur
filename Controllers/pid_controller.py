@@ -46,11 +46,17 @@ class PID:
         Returns:
             float: somme des trois termes P + I + D
         """
-        # TODO : calculer l'erreur, mettre à jour l'intégrale et la dérivée,
+        # DONE : calculer l'erreur, mettre à jour l'intégrale et la dérivée,
         #       puis renvoyer la commande u = P + I + D.
-        raise NotImplementedError("PID.compute : à implémenter")
+
+        erreur = target - current
+        self.integral += erreur
+        D = (erreur - self.prev_error)/self.dt
+        self.prev_error = erreur
+        return self.Kp*erreur +self.Kd*D +self.integral*self.Ki*self.dt
 
     def reset(self):
         """Efface la mémoire du correcteur (à appeler entre deux simulations)."""
-        # TODO : remettre integral et prev_error à zéro
-        raise NotImplementedError("PID.reset : à implémenter")
+        # DONE : remettre integral et prev_error à zéro
+        self.integral = 0
+        self.prev_error = 0

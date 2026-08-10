@@ -85,9 +85,9 @@ t_max = 10.0   # Durée par défaut d'une simulation (s)
 # main pour comprendre l'effet de chaque terme.
 
 # --- PID : boucle interne (angle) ---
-PID_Kp = 0.0    # TODO : à régler
+PID_Kp = 30    # TODO : à régler
 PID_Ki = 0.0
-PID_Kd = 0.0
+PID_Kd = 0.12
 
 # --- PID : boucle externe (position) ---
 # Attention : Kp doit rester petit, sinon la boucle externe demande des angles
