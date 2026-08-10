@@ -17,7 +17,7 @@ En notant M_total = M + m + J/R^2 (masse en translation, roues comprises) et
 I_total = I + m*l^2 (inertie du pendule ramenée à l'axe des roues), le système
 s'écrit sous forme matricielle :
 
-    [ M_total        m*l*cos(theta) ] [ ddx     ]   [ Qx     ]
+    [ M_total        m*l*cos(theta) ] [ ddx     ] = [ Qx     ]
     [ m*l*cos(theta) I_total        ] [ ddtheta ] = [ Qtheta ]
 
 avec, au second membre :
@@ -52,9 +52,9 @@ class Robot:
         self.bx = config.bx
         self.btheta = config.btheta
 
-        # TODO 1 : constantes pré-calculées (voir l'en-tête du fichier)
-        self.M_total = None   # M + m + J/R^2
-        self.I_total = None   # I + m*l^2
+        # DONE 1 : constantes pré-calculées (voir l'en-tête du fichier)
+        self.M_total = self.M + self.m + self.J/self.R**2  # M + m + J/R^2
+        self.I_total = self.I + self.m*self.l**2   # I + m*l^2
 
         # Modèle des moteurs : convertit le rapport cyclique en couple
         self.motor = Motor()
@@ -71,9 +71,11 @@ class Robot:
         Returns:
             float: couple total (N.m)
         """
-        # TODO 2 : calculer omega_relatif = (dx / R) - dtheta,
+        # DONE 2 : calculer 
+        # omega_relatif = (dx / R) - dtheta,
+        omega_relatif = (state[1] / self.R) - state[3]
         #          puis renvoyer self.motor.torque(duty, omega_relatif)
-        raise NotImplementedError("robot.couple_moteur : à implémenter")
+        return self.motor.torque(duty, omega_relatif)
 
     def derivarives(self, state, duty):
         """
@@ -86,19 +88,28 @@ class Robot:
         Returns:
             np.ndarray: [dx, ddx, dtheta, ddtheta]
         """
-        # TODO 3 : extraire x, dx, theta, dtheta de state
+        # DONE 3 : extraire x, dx, theta, dtheta de state
+        x, dx, theta, dtheta = state
 
-        # TODO 4 : convertir le rapport cyclique en couple avec couple_moteur()
+        # DONE 4 : convertir le rapport cyclique en couple avec couple_moteur()
+        u = self.couple_moteur(state, duty)
 
-        # TODO 5 : construire la matrice de masse 2x2 (voir l'en-tête)
+        # DONE 5 : construire la matrice de masse 2x2 (voir l'en-tête)
+        M_mat = np.array([[self.M_total, self.m*self.l*np.cos(theta)], 
+                          [self.m*self.l*np.cos(theta), self.I_total]])
+        
+        # DONE 6 : construire le vecteur des forces généralisées [Qx, Qtheta]
+        Qx = self.u/self.R - self.bx*dx + self.m*self.l*np.sin(theta)*dtheta**2
+        Qtheta = -self.u - self.btheta*dtheta + self.m*self.g*self.l*np.sin(theta)
+        V_forces = np.array([[Qx, Qtheta]])
 
-        # TODO 6 : construire le vecteur des forces généralisées [Qx, Qtheta]
-
-        # TODO 7 : résoudre le système linéaire pour obtenir [ddx, ddtheta].
+        # DONE 7 : résoudre le système linéaire pour obtenir [ddx, ddtheta].
         #          Utiliser np.linalg.solve.
+        accels = np.linalg.solve(M_mat, V_forces)
+        ddx, ddtheta = accels        
 
-        # TODO 8 : renvoyer np.array([dx, ddx, dtheta, ddtheta])
-        raise NotImplementedError("robot.derivarives : à implémenter")
+        # DONE 8 : renvoyer np.array([dx, ddx, dtheta, ddtheta])
+        return np.array([dx, ddx, dtheta, ddtheta])
 
     def step(self, state, duty, dt):
         """
@@ -112,11 +123,16 @@ class Robot:
         Returns:
             np.ndarray: état à l'instant t + dt
         """
-        # TODO 9 : calculer les quatre pentes k1, k2, k3, k4
+        # DONE 9 : calculer les quatre pentes k1, k2, k3, k4
         #   k1 = f(state,                duty)
+        k1 = self.derivarives(state, duty)
         #   k2 = f(state + dt/2 * k1,    duty)
+        k2 = self.derivarives(state + dt*k1/2, duty)
         #   k3 = f(state + dt/2 * k2,    duty)
+        k3 = self.derivarives(state + dt*k2/2, duty)
         #   k4 = f(state + dt   * k3,    duty)
+        k4 = self.derivarives(state + dt*k3, duty)
 
-        # TODO 10 : renvoyer state + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
-        raise NotImplementedError("robot.step : à implémenter")
+        # DONE 10 : renvoyer state + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
+
+        return state + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
