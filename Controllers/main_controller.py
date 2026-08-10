@@ -49,8 +49,9 @@ class MainController:
         # 1. CRÉATION DU CONTRÔLEUR
         # =============================================================
         # TODO 1 : selon self.TYPE_CONTROLEUR, instancier ce qu'il faut.
-        dummy_controller = DummyController() 
-        pid_controller = PID(config.PID_Kp,config.PID_Ki,config.PID_Kd,config.dt)
+        dummy_controller = DummyController()
+        pos_pid_controller = PID(config.PID_Pos_Kp,config.PID_Pos_Ki,config.PID_Pos_Kd,config.dt)
+        theta_pid_controller = PID(config.PID_Kp,config.PID_Ki,config.PID_Kd,config.dt)
 
         #   
 
@@ -72,7 +73,9 @@ class MainController:
             if self.TYPE_CONTROLEUR == "DUMMY":
                 u = dummy_controller.compute(state,self.target_state)
             elif self.TYPE_CONTROLEUR == "PID":
-                u = pid_controller.compute(self.target_state[2],self.state[2])
+                theta_target = pos_pid_controller.compute(self.target_state[0],self.state[0])
+                theta_target = np.clip(theta_target,-0.17,0.17)
+                u = -theta_pid_controller.compute(theta_target,state[2])
                 
             u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
             state = robot.step(state, u, config.dt)

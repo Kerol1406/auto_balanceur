@@ -85,16 +85,16 @@ t_max = 10.0   # Durée par défaut d'une simulation (s)
 # main pour comprendre l'effet de chaque terme.
 
 # --- PID : boucle interne (angle) ---
-PID_Kp = 30    # TODO : à régler
+PID_Kp = 40    # TODO : à régler
 PID_Ki = 0.0
-PID_Kd = 0.12
+PID_Kd = 1
 
 # --- PID : boucle externe (position) ---
 # Attention : Kp doit rester petit, sinon la boucle externe demande des angles
 # cibles énormes et le robot tombe en essayant de les atteindre.
-PID_Pos_Kp = 0.0    # TODO
+PID_Pos_Kp = 0.05    # TODO
 PID_Pos_Ki = 0.0
-PID_Pos_Kd = 0.0    # TODO
+PID_Pos_Kd = 0.1    # TODO
 
 # --- LQR : matrices de pondération ---
 # Q pénalise les écarts d'état [x, dx, theta, dtheta], R pénalise l'effort moteur.
