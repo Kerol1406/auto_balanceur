@@ -99,9 +99,9 @@ class Robot:
                           [self.m*self.l*np.cos(theta), self.I_total]])
         
         # DONE 6 : construire le vecteur des forces généralisées [Qx, Qtheta]
-        Qx = self.u/self.R - self.bx*dx + self.m*self.l*np.sin(theta)*dtheta**2
-        Qtheta = -self.u - self.btheta*dtheta + self.m*self.g*self.l*np.sin(theta)
-        V_forces = np.array([[Qx, Qtheta]])
+        Qx = u/self.R - self.bx*dx + self.m*self.l*np.sin(theta)*dtheta**2
+        Qtheta = -u - self.btheta*dtheta + self.m*self.g*self.l*np.sin(theta)
+        V_forces = np.array([Qx, Qtheta])
 
         # DONE 7 : résoudre le système linéaire pour obtenir [ddx, ddtheta].
         #          Utiliser np.linalg.solve.

@@ -49,7 +49,7 @@ class MainController:
         # 1. CRÉATION DU CONTRÔLEUR
         # =============================================================
         # TODO 1 : selon self.TYPE_CONTROLEUR, instancier ce qu'il faut.
-        #
+        dummy_controller = DummyController() 
         #   
 
         # =============================================================
@@ -57,12 +57,29 @@ class MainController:
         # =============================================================
         # TODO 2 : créer le Robot, copier l'état initial, calculer le nombre de
         #          pas : steps = int(self.sim_time / config.dt)
+        robot = Robot()
+        state = self.state
+        steps = int(self.sim_time/config.dt)
+
 
         # =============================================================
         # 3. BOUCLE TEMPORELLE
         # =============================================================
         # TODO 3 : pour chaque pas i :
-        #
+        for i in range(steps):
+            if self.TYPE_CONTROLEUR == "DUMMY":
+                u = dummy_controller.compute(state,self.target_state)
+                u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
+                state = robot.step(state, u, config.dt)
+                if abs(state[2]) >= np.pi/2:
+                    print(f"Robot crashé à {i*config.dt:.2f}s 👾👾")
+                    break
+                self.history['time'].append(i*config.dt)
+                self.history['theta'].append(state[2])
+                self.history['x'].append(state[0])
+                self.history['u'].append(u)
+                self.history['target_theta'].append(self.target_state[2])               
+
         #   a) calculer la commande u selon le contrôleur choisi.
         #
         #      DUMMY / LQR / SAC : un seul appel, u = controleur.compute(state, target_state)
@@ -94,9 +111,10 @@ class MainController:
         #
         #   e) enregistrer time / theta / x / u / target_theta dans self.history
 
-        # TODO 4 : mémoriser le dernier état atteint dans self.state et afficher
+        # DONE 4 : mémoriser le dernier état atteint dans self.state et afficher
         #          un court résumé (angle maximum atteint, par exemple)
-
+        self.state = state
+        
         # =============================================================
         # 4. RÉSULTATS
         # =============================================================
@@ -104,7 +122,11 @@ class MainController:
         #          lancer l'animation :
         #               visu = Visualizer(self.history)
         #               visu.animate()
-        raise NotImplementedError("MainController.main : à implémenter")
+        if self.FAIRE_VISUALISATION :
+            visu = Visualizer(self.history)
+            visu.animate()
+        self.plot_results()
+
 
     def plot_results(self, save_path=None):
         """
