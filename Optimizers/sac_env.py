@@ -29,7 +29,7 @@ class BalanceEnv(gym.Env):
         init_theta_range=np.radians(5),
         init_theta_dot_range=1.0,
         reward_weights=None,
-        domain_randomization=False,
+        domain_randomization=True,
         observation_noise_std=(0.01, 0.015, 0.015, 0.03),
         normalize_obs=True,
     ):
@@ -65,21 +65,36 @@ class BalanceEnv(gym.Env):
         self.step_count = 0
         self.last_duty = 0.0
 
-        # TODO 1: définir l'espace d'action SAC.
+        # DONE 1: définir l'espace d'action SAC.
         # Une action = un duty cycle dans [-1, 1].
-        self.action_space = None
+        self.action_space = spaces.Box(
+            low=-1.0,
+            high=1.0,
+            shape=(1,),
+            dtype=np.float32
+        )
 
-        # TODO 2: définir l'espace d'observation.
+        # DONE 2: définir l'espace d'observation.
         # Une observation = [x, x_dot, theta, theta_dot].
-        self.observation_space = None
+        self.observation_space = spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(4,),
+            dtype=np.float32
+        )
 
     def _get_obs(self):
         obs = self.state.astype(np.float32)
 
-        # TODO 3: si domain_randomization est actif, ajouter un bruit gaussien.
+        # DONE 3: si domain_randomization est actif, ajouter un bruit gaussien.
         # Indice: self.np_random.normal(0.0, self.observation_noise_std)
+        if self.domain_randomization:
+            obs += self.np_random.normal(0.0, self.observation_noise_std)
 
-        # TODO 4: si normalize_obs est actif, diviser obs par self.obs_bounds.
+
+        # DONE 4: si normalize_obs est actif, diviser obs par self.obs_bounds.
+        if self.normalize_obs:
+            obs /= self.obs_bounds
 
         return obs
 
@@ -94,11 +109,11 @@ class BalanceEnv(gym.Env):
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
 
-        # TODO 5: tirer x0, theta0 et theta_dot0 aléatoirement.
+        # DONE 5: tirer x0, theta0 et theta_dot0 aléatoirement.
         # x0 proche de 0, theta0 dans [-init_theta_range, init_theta_range].
-        x0 = None
-        theta0 = None
-        theta_dot0 = None
+        x0 = self.np_random.uniform(-0.05, 0.05) 
+        theta0 = self.np_random.uniform(-self.init_theta_range, self.init_theta_range)
+        theta_dot0 = self.np_random.uniform(-self.init_theta_dot_range, self.init_theta_dot_range)
 
         self.bot = Robot()
         self.state = np.array([x0, 0.0, theta0, theta_dot0], dtype=np.float64)
@@ -108,34 +123,42 @@ class BalanceEnv(gym.Env):
         return self._get_obs(), self._get_info()
 
     def step(self, action):
-        # TODO 6: convertir action[0] en duty saturé dans [-PWM_MAX, PWM_MAX].
-        duty = None
+        # DONE 6: convertir action[0] en duty saturé dans [-PWM_MAX, PWM_MAX].
+        duty =np.clip(action[0], -config.PWM_MAX, config.PWM_MAX)
 
-        # TODO 7: faire avancer la physique avec robot.py.
-        self.state = None
+        # DONE 7: faire avancer la physique avec robot.py.
+        self.state = self.bot.step(self.state, duty, self.dt)   
         self.step_count += 1
 
         x, x_dot, theta, theta_dot = self.state
         delta_duty = duty - self.last_duty
 
-        # TODO 8: construire les erreurs normalisées.
-        theta_error = None
-        theta_dot_error = None
-        x_error = None
-        x_dot_error = None
+        # DONE 8: construire les erreurs normalisées.
+        theta_error = theta / self.obs_bounds[2]
+        theta_dot_error = theta_dot / self.obs_bounds[3]
+        x_error = x / self.obs_bounds[0]
+        x_dot_error = x_dot / self.obs_bounds[1]
 
-        # TODO 9: calculer la reward.
+        # DONE 9: calculer la reward.
         # Elle doit pénaliser angle, vitesse angulaire, position, vitesse x,
         # effort moteur et variation de commande.
-        reward = None
+        reward = 0.1+(
+            -self.w_theta * theta_error**2
+            -self.w_theta_dot * theta_dot_error**2
+            -self.w_x * x_error**2
+            -self.w_x_dot * x_dot_error**2
+            -self.w_duty * duty**2
+            -self.w_delta_duty * delta_duty**2
+        )
 
         self.last_duty = duty
 
-        # TODO 10: définir terminated et truncated.
-        terminated = None
-        truncated = None
+        # DONE 10: définir terminated et truncated.
+        terminated =  abs(theta)>self.theta_fail or abs(x)>self.x_fail
+        truncated = self.step_count>=self.max_episode_steps
 
         if terminated:
             reward -= 20.0
 
         return self._get_obs(), reward, terminated, truncated, self._get_info()
+ 
