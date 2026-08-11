@@ -97,7 +97,7 @@ class FuzzyController:
             np.ndarray de forme (2, 5) : ligne 0 = appartenances de l'entrée 1,
             ligne 1 = appartenances de l'entrée 2
         """
-        # TODO 2 : écrire la fonction d'appartenance de l'entrée 1 (5 classes)
+        # DONE 2 : écrire la fonction d'appartenance de l'entrée 1 (5 classes)
 
         # TODO 3 : écrire la fonction d'appartenance de l'entrée 2 (5 classes)
 
