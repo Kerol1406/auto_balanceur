@@ -87,16 +87,16 @@ CHUTE_X_MAX = 1.5  # Position maximale avant de considérer que le robot est tom
 # main pour comprendre l'effet de chaque terme.
 
 # --- PID : boucle interne (angle) ---
-PID_Kp = 17.076114  # TODO : à régler
-PID_Ki = 2.891359
-PID_Kd = 0.222861
+PID_Kp = 10.447711  # TODO : à régler
+PID_Ki = 0.000000
+PID_Kd = 0.009833
 
 # --- PID : boucle externe (position) ---
 # Attention : Kp doit rester petit, sinon la boucle externe demande des angles
 # cibles énormes et le robot tombe en essayant de les atteindre.
-PID_Pos_Kp = 0.155921  # TODO
-PID_Pos_Ki = 0.000266
-PID_Pos_Kd = 0.307186  # TODO
+PID_Pos_Kp = 0.110938  # TODO
+PID_Pos_Ki = 0.0
+PID_Pos_Kd = 0.259351  # TODO
 PID_TARGET_THETA_MAX = 0.17  # Saturation de l'angle cible (rad), ~10 degrés
 PID_I_MAX = 1.0          # Saturation du terme intégral de la boucle interne
 PID_Pos_I_MAX = 0.5      # Saturation du terme intégral de la boucle externe
