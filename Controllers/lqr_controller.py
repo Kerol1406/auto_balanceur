@@ -497,6 +497,13 @@ class LQR:
         #
         # Indice : pense à utiliser self.A, self.B, self.K (déjà calculés
         # dans __init__), pas des variables locales non définies.
+
+        if self.K is None:
+            return {
+                'stable': False,
+                'eigenvalues': np.array([]),
+                'max_real_part': np.inf
+            }
         
         A_cl = self.A - self.B @ self.K       # <-- à remplacer
         eigenvalues = np.linalg.eigvals(A_cl)  # <-- à remplacer

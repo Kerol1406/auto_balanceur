@@ -51,7 +51,7 @@ class LQRAutoTuner:
             dict avec les métriques de performance, ou None si crash/instabilité.
         """
         try:
-            Q = np.diag(Q_diag)
+            Q = np.diag(Q_diag) if np.ndim(Q_diag) == 1 else np.array(Q_diag)
             lqr = LQR(Q=Q, R=R_val, verbose=False)
         except Exception:
             return None
@@ -60,7 +60,7 @@ class LQRAutoTuner:
         if not stability['stable']:
             return None
 
-        bot = Robot()
+        robot = Robot()
         state = self.initial_state.copy()
         steps = int(self.sim_time / config.dt)
 
@@ -102,13 +102,14 @@ class LQRAutoTuner:
             #      pour arrêter cette simulation ici.
             #
             # Indice : 40° en radians s'écrit `40 * np.pi / 180`.
+            for i in range(steps):
+                u = lqr.compute(state,target_state=self.target_state)      # <-- à remplacer (TODO 1, étape 1)
+                u = np.clip(u, -self.u_max,self.u_max)     # <-- à remplacer (TODO 1, étape 2 : clip)
+                state = robot.step(state, u, config.dt)  # <-- à remplacer (TODO 1, étape 3)
 
-            u = None      # <-- à remplacer (TODO 1, étape 1)
-            u = None      # <-- à remplacer (TODO 1, étape 2 : clip)
-            state = None  # <-- à remplacer (TODO 1, étape 3)
-
-            # TODO 1, étape 4 : détection de crash (if ... : return None)
-
+            # DONE 1, étape 4 : détection de crash (if ... : return None)
+            if abs(state[2]) > 70 * np.pi / 180:
+                return None
             # ============================================================
             # FIN TODO 1
             # ============================================================
@@ -118,7 +119,7 @@ class LQRAutoTuner:
             err_x = abs(state[0] - self.target_state[0])
 
             # ============================================================
-            # TODO 2 : Accumulation des métriques de performance
+            # DONE 2 : Accumulation des métriques de performance
             # ============================================================
             # Objectif : construire, au fil de la simulation, des
             # indicateurs résumant "à quel point ce jeu de Q/R est bon".
@@ -144,18 +145,18 @@ class LQRAutoTuner:
             # réassigner max_overshoot_theta / max_overshoot_x avec max(...)
             # pour le maximum (d).
 
-            # total_angle_error += ...   # <-- à compléter
-            # total_pos_error += ...     # <-- à compléter
-            # total_effort += ...        # <-- à compléter
-            # max_overshoot_theta = ...  # <-- à compléter
-            # max_overshoot_x = ...      # <-- à compléter
+            total_angle_error += err_theta**2   # <-- à compléter
+            total_pos_error += err_x**2     # <-- à compléter
+            total_effort += u**2        # <-- à compléter
+            max_overshoot_theta = max(max_overshoot_theta,state[2])  # <-- à compléter
+            max_overshoot_x = max(max_overshoot_x,state[0])      # <-- à compléter
 
             # ============================================================
             # FIN TODO 2
             # ============================================================
 
             # ============================================================
-            # TODO 3 : Suivi du temps de stabilisation (settling time)
+            # DONE 3 : Suivi du temps de stabilisation (settling time)
             # ============================================================
             # Objectif : déterminer À QUEL INSTANT le système est rentré
             # DÉFINITIVEMENT dans la zone de tolérance (theta_tol, x_tol) et
@@ -185,15 +186,17 @@ class LQRAutoTuner:
             # Recopie la même logique juste en dessous pour x (avec les
             # variables x_tol, settling_time_x, x_settled, err_x).
 
-            # if err_theta > theta_tol:
-            #     ...
-            # elif ...:
-            #     ...
-            #
-            # if err_x > x_tol:
-            #     ...
-            # elif ...:
-            #     ...
+            if err_theta > theta_tol:
+                settling_time_theta = t
+                theta_settled = False
+            elif not theta_settled:
+                theta_settled = True
+
+            if err_x > x_tol:
+                settling_time_x = t
+                x_settled = False
+            elif not x_settled:
+                x_settled = True
 
             # ============================================================
             # FIN TODO 3
@@ -217,7 +220,7 @@ class LQRAutoTuner:
         self.eval_count += 1
 
         # ============================================================
-        # TODO 4 : Fonction de coût pondérée
+        # DONE 4 : Fonction de coût pondérée
         # ============================================================
         # `params` est un vecteur de 5 nombres, dans l'ordre :
         #   [q_x, q_xdot, q_theta, q_thetadot, R]
@@ -245,14 +248,20 @@ class LQRAutoTuner:
         #
         # Additionne ces 6 termes pour obtenir `cost`.
 
-        Q_diag = None  # <-- à remplacer (TODO 4a)
-        R_val = None   # <-- à remplacer (TODO 4a)
+        Q_diag = params[:-1]  # <-- à remplacer (TODO 4a)
+        R_val = params[-1]   # <-- à remplacer (TODO 4a)
 
-        result = None  # <-- à remplacer (TODO 4a : appel à self._simulate)
+        result = self._simulate(Q_diag, R_val)  # <-- à remplacer (TODO 4a : appel à self._simulate)
 
-        # TODO 4b : if result is None: return 1e8
+        # DONE 4b : if result is None: return 1e8
+        if result is None:
+            return 1e8
+        W = np.array([35, 30, 50, 40, 23, 19]).T
+        X = np.array([result["settling_time_theta"], result["settling_time_x"], result["total_angle_error"],
+                      result["total_pos_error"], result["total_effort"], result["max_overshoot_theta"]])
+        cost = W@X
 
-        cost = None  # <-- à remplacer (TODO 4c : combinaison pondérée)
+        # <-- à remplacer (TODO 4c : combinaison pondérée)
 
         # ============================================================
         # FIN TODO 4
@@ -262,11 +271,11 @@ class LQRAutoTuner:
             self.best_cost = cost
             print(f"  [#{self.eval_count}] Nouveau meilleur coût: {cost:.2f} | "
                   f"Q=diag({np.array(Q_diag).round(2)}) R={R_val:.3f} | "
-                  f"t_θ={result['settling_time_theta']:.2f}s t_x={result['settling_time_x']:.2f}s")
+                  f"t_theta={result['settling_time_theta']:.2f}s t_x={result['settling_time_x']:.2f}s")
 
         return cost
 
-    def optimize(self, bounds=None, maxiter=50, seed=42):
+    def optimize(self, bounds=None, maxiter=2, seed=42):
         """
         Lance l'optimisation par differential_evolution.
 
@@ -280,7 +289,7 @@ class LQRAutoTuner:
         """
         if bounds is None:
             # ============================================================
-            # TODO 5 : Bornes de recherche pour l'algorithme génétique
+            # DONE 5 : Bornes de recherche pour l'algorithme génétique
             # ============================================================
             # Objectif : définir, pour chacun des 5 paramètres, un
             # intervalle [min, max] raisonnable dans lequel l'algorithme va
@@ -303,11 +312,11 @@ class LQRAutoTuner:
             # par paramètre, dans l'ordre [q_x, q_xdot, q_theta, q_thetadot, R] :
 
             bounds = [
-                (None, None),    # q_x       <-- à remplacer
-                (None, None),    # q_xdot    <-- à remplacer
-                (None, None),    # q_theta   <-- à remplacer
-                (None, None),    # q_thetadot <-- à remplacer
-                (None, None),    # R         <-- à remplacer
+                (0, 200),    # q_x       <-- à remplacer
+                (0, 100),    # q_xdot    <-- à remplacer
+                (0, 500),    # q_theta   <-- à remplacer
+                (0, 50),    # q_thetadot <-- à remplacer
+                (0.01, 10),    # R         <-- à remplacer
             ]
             # ============================================================
             # FIN TODO 5
@@ -328,7 +337,7 @@ class LQRAutoTuner:
         debut = time.time()
 
         # ============================================================
-        # TODO 6 : Appel à differential_evolution
+        # DONE 6 : Appel à differential_evolution
         # ============================================================
         # C'est ici qu'on lance réellement l'algorithme d'optimisation.
         # `differential_evolution` a besoin, au minimum, de deux arguments :
@@ -352,7 +361,10 @@ class LQRAutoTuner:
         # lui-même autant de fois que nécessaire). (Vous pouvez implémenter d'autres manière de faire pour 
         # l'algorithme génétiques)
 
-        result = None  # <-- à remplacer
+        result =  differential_evolution(self._cost_function, 
+                                         bounds=bounds, 
+                                         maxiter=maxiter, 
+                                         seed=seed, tol=1e-5, polish=True) # <-- à remplacer
 
         # ============================================================
         # FIN TODO 6
@@ -361,7 +373,7 @@ class LQRAutoTuner:
         print(f"Temps mis : {time.time() - debut}")
 
         # ============================================================
-        # TODO 7 : Extraction du résultat final
+        # DONE 7 : Extraction du résultat final
         # ============================================================
         # `result.x` est le meilleur vecteur de 5 paramètres trouvé par
         # l'optimiseur, dans le même ordre que dans _cost_function :
@@ -372,8 +384,8 @@ class LQRAutoTuner:
         #     valeurs de result.x (indice : np.diag(...))
         #   - R_opt : la 5ème valeur de result.x (un simple float)
 
-        Q_opt = None  # <-- à remplacer
-        R_opt = None  # <-- à remplacer
+        Q_opt = np.diag(result.x[:4])  # <-- à remplacer
+        R_opt = result.x[4]  # <-- à remplacer
 
         # ============================================================
         # FIN TODO 7
@@ -390,9 +402,9 @@ class LQRAutoTuner:
         print(f"Coût final : {result.fun:.4f}")
         print(f"Évaluations: {self.eval_count}")
         if metrics:
-            print(f"Temps stabilisation θ : {metrics['settling_time_theta']:.2f} s")
+            print(f"Temps stabilisation theta : {metrics['settling_time_theta']:.2f} s")
             print(f"Temps stabilisation x : {metrics['settling_time_x']:.2f} s")
-            print(f"Overshoot max θ       : {np.degrees(metrics['max_overshoot_theta']):.1f}°")
+            print(f"Overshoot max theta    : {np.degrees(metrics['max_overshoot_theta']):.1f}°")
             print(f"Overshoot max x       : {metrics['max_overshoot_x']:.3f} m")
         print("=" * 60)
 
