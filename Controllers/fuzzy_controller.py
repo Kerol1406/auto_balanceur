@@ -1,3 +1,4 @@
+from kivy.uix.behaviors.cover import Decimal
 """
 Contrôleur à logique floue.
 
@@ -40,7 +41,7 @@ class FuzzyController:
     # Doucement, Droite Vite.
     OUTPUT_LABELS = ['GV', 'GD', 'R', 'DD', 'DV']
 
-    # TODO 1 : écrire la table de règles.
+    # DONE 1 : écrire la table de règles.
     #
     #   lignes   = classes de la vitesse angulaire [TED, TD, E, TG, TEG]
     #              (Tombe Extrême Droite ... Équilibre ... Tombe Extrême Gauche)
@@ -56,7 +57,13 @@ class FuzzyController:
     #       [ ?,  ?, ?, ?, ?],   # TG
     #       [ ?,  ?, ?, ?, ?],   # TEG
     #   ])
-    RULE_TABLE = None
+
+    RULE_TABLE = np.array([
+        [ 0,  1, 3, 4, 4],       
+        [ 0,  1, 3, 3, 4],   
+        [ 0,  1, 2, 3, 4],   
+        [ 0,  1, 1, 3, 4],   
+        [ 0,  0, 1, 3, 4]])   
 
     def __init__(self, state, output_centers=(-1.0, -0.3, 0.0, 0.3, 1.0),
                  input_gains=(1.0, 1.0), verbose=False):
@@ -97,13 +104,100 @@ class FuzzyController:
             np.ndarray de forme (2, 5) : ligne 0 = appartenances de l'entrée 1,
             ligne 1 = appartenances de l'entrée 2
         """
+        theta, dtheta = input_value
         # DONE 2 : écrire la fonction d'appartenance de l'entrée 1 (5 classes)
+        def angle_membership(theta):
+            # EG
+            sortie = np.zeros(5)
+            if theta <= -20 :
+                sortie[0] = 1 
+            elif theta <= -10 :
+                sortie[0] = -0.1*theta - 1
+            else :
+                sortie[0] = 0
 
-        # TODO 3 : écrire la fonction d'appartenance de l'entrée 2 (5 classes)
+            # G
+            if theta >= -20 and theta <=-10 :
+                sortie[1] = 0.1*theta + 2
+            elif theta >= -10 and theta <= 0 :
+                sortie[1] = -0.1*theta
+            else :
+                sortie[1] = 0
 
-        # TODO 4 : renvoyer le tableau (2, 5)
+            # C
+            if theta >= -3 and theta <=0 :
+                sortie[2] = (1/3)*theta + 1
+            elif theta >= 0 and theta <= 3 :
+                sortie[2] = -(1/3)*theta + 1
+            else :
+                sortie[2] = 0
 
-        raise NotImplementedError("FuzzyController.fuzzify : à implémenter")
+            # D
+            if theta >= 0 and theta <= 10 :
+                sortie[3] = (0.1)*theta 
+            elif theta >= 10 and theta <= 20 :
+                sortie[3] = -(0.1)*theta + 2
+            else :
+                sortie[3] = 0
+
+            # ED
+            if theta >= 20 :
+                sortie[4] = 1 
+            elif theta <= 10 :
+                sortie[4] = 0
+            else :
+                sortie[4] = (0.1)*theta - 1         
+
+            return sortie
+
+        # DONE 3 : écrire la fonction d'appartenance de l'entrée 2 (5 classes)
+        def angular_velocity_membership_function(angular_velocity):
+            fuzzy_angular_velocity = np.zeros(5) # Tombe Extreme droite, Tombe droite, Equilibre, Tombe gauche, Tombe Extreme gauche
+            if angular_velocity < -3:
+                fuzzy_angular_velocity[0] = 1.0
+            elif angular_velocity >= -3 and angular_velocity <= -1.5:
+                fuzzy_angular_velocity[0] = -(2/3) * angular_velocity - 1.0  # descend de 1 (à -3) vers 0 (à -1.5)
+            else:
+                fuzzy_angular_velocity[0] = 0.0
+            
+            if angular_velocity >= -3 and angular_velocity <= -1.5:
+                fuzzy_angular_velocity[1] = (2/3) * angular_velocity + 2.0
+            elif angular_velocity >= -1.5 and angular_velocity <= 0:
+                fuzzy_angular_velocity[1] = -(2/3) * angular_velocity
+            else:
+                fuzzy_angular_velocity[1] = 0.0
+
+            if angular_velocity >= -0.5 and angular_velocity <= 0:
+                fuzzy_angular_velocity[2] = (2) * angular_velocity + 1.0
+            elif angular_velocity >= 0 and angular_velocity <= 0.5:
+                fuzzy_angular_velocity[2] = -(2) * angular_velocity + 1.0
+            else:
+                fuzzy_angular_velocity[2] = 0.0
+
+            if angular_velocity >= 0 and angular_velocity <= 1.5:
+                fuzzy_angular_velocity[3] = (2/3) * angular_velocity
+            elif angular_velocity >= 1.5 and angular_velocity <= 3:
+                fuzzy_angular_velocity[3] = -(2/3) * angular_velocity + 2.0
+            else:
+                fuzzy_angular_velocity[3] = 0.0
+            
+            if angular_velocity >= 1.5 and angular_velocity <= 3:
+                fuzzy_angular_velocity[4] = (2/3) * angular_velocity - 1.0
+            elif angular_velocity > 3:
+                fuzzy_angular_velocity[4] = 1.0
+            else:
+                fuzzy_angular_velocity[4] = 0.0
+
+            return fuzzy_angular_velocity
+
+        # DONE 4 : renvoyer le tableau (2, 5)
+        fuzzy_values = np.zeros((2,5))
+        fuzzy_values[0] = angle_membership(input_value[0])
+        fuzzy_values[1] = angular_velocity_membership_function(input_value[1]) 
+
+        if self.verbose :
+            print("Fuzzy values for angle and angular velocity : ", fuzzy_values)
+        return fuzzy_values
 
     def inference(self, fuzzy_value):
         """
@@ -121,9 +215,23 @@ class FuzzyController:
             np.ndarray de taille 5 : degré d'activation de chaque classe de
             sortie [GV, GD, R, DD, DV]
         """
-        # TODO 5 : double boucle sur les 25 règles, min pour le ET,
+        # DONE 5 : double boucle sur les 25 règles, min pour le ET,
         #          max pour l'agrégation
-        raise NotImplementedError("FuzzyController.inference : à implémenter")
+        
+        mu_angle, mu_velocity = fuzzy_value
+        activation = np.zeros(len(self.OUTPUT_LABELS))
+
+        for i in range(5):
+            for j in range(5):
+                rule_strength = min(mu_velocity[i], mu_angle[j])
+
+                output_class = self.RULE_TABLE[i, j]
+                activation[output_class] = max(activation[output_class], rule_strength)
+
+        if self.verbose :
+            print("Activation of output classes : ", zip(self.OUTPUT_LABELS, activation.round(3)))
+        
+        return activation
 
     def defuzzify(self, inferred_value):
         """
@@ -137,10 +245,15 @@ class FuzzyController:
         Returns:
             float: commande nette
         """
-        # TODO 6 : attention au cas où la somme des activations est nulle
+        # DONE 6 : attention au cas où la somme des activations est nulle
         #          (aucune règle active) : une division par zéro ferait
         #          planter la simulation.
-        raise NotImplementedError("FuzzyController.defuzzify : à implémenter")
+        sum_activation = sum(inferred_value)
+        if sum_activation == 0:
+            return 0
+        else :
+            weighted_sum = sum(inferred_value[i] * self.output_centers[i] for i in range(len(self.OUTPUT_LABELS)))
+            return weighted_sum / sum_activation
 
     # ------------------------------------------------------------------
     # Outils : lookup tables (pour le portage sur microcontrôleur)
@@ -169,12 +282,25 @@ class FuzzyController:
         Returns:
             (entree1, entree2, table) avec table de forme (n_velocity, n_angle)
         """
-        # TODO 7 : construire les deux axes avec np.linspace
+        # DONE 7 : construire les deux axes avec np.linspace
+        x_axis = np.linspace(angle_range[0], angle_range[1], n_angle)
+        y_axis = np.linspace(velocity_range[0], velocity_range[1], n_velocity)
 
-        # TODO 8 : remplir la table en appelant self.compute([e1, e2]) sur chaque case
+        # DONE 8 : remplir la table en appelant self.compute([e1, e2]) sur chaque case
+        table = np.zeros((x_axis.size, y_axis.size))
+        for i in range(x_axis.size):
+            for j in range(y_axis.size):
+                table[i,j] = self.compute([x_axis[i], y_axis[j]])
 
-        # TODO 9 : si save_path est fourni, écrire le CSV au format décrit
+        # DONE 9 : si save_path est fourni, écrire le CSV au format décrit
         #          ci-dessus (np.savetxt avec delimiter=',')
+        if save_path :
+            M_full = np.zeros((table.shape[0]+1, table.shape[1]+1))
+            M_full[0, 1:] = x_axis
+            M_full[1:, 0] = y_axis
+            M_full[1:, 1:] = table
+            np.savetxt(fname=save_path, X=M_full, delimiter=",")
+            print("C'est sauvegardé")
 
         # TODO 10 : si plot est vrai, afficher la surface (plt.pcolormesh)
         raise NotImplementedError("FuzzyController.extract_lookup_table : à implémenter")
@@ -187,8 +313,12 @@ class FuzzyController:
         Returns:
             (entree1, entree2, table)
         """
-        # TODO 11 : np.loadtxt puis découpage inverse de celui de l'écriture
-        raise NotImplementedError("FuzzyController.load_lookup_table : à implémenter")
+        # DONE 11 : np.loadtxt puis découpage inverse de celui de l'écriture
+        M_full = np.loadtxt(fname=path, delimiter=",")
+        x_axis = M_full[0, 1:]
+        y_axis = M_full[1:, 0]
+        table = M_full[1:, 1:]
+        return x_axis, y_axis, table
 
     @staticmethod
     def lookup_control(angle, velocity, angles, velocities, table):
@@ -209,6 +339,7 @@ class FuzzyController:
             float: commande interpolée
         """
         # TODO 12 : implémenter les quatre étapes ci-dessus
+        
         raise NotImplementedError("FuzzyController.lookup_control : à implémenter")
 
     # ------------------------------------------------------------------

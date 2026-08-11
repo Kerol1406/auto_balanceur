@@ -53,12 +53,25 @@ class MainController:
         pos_pid_controller = PID(config.PID_Pos_Kp,config.PID_Pos_Ki,config.PID_Pos_Kd,config.dt)
         theta_pid_controller = PID(config.PID_Kp,config.PID_Ki,config.PID_Kd,config.dt)
 
-        #   
+        if self.TYPE_CONTROLEUR == "FUZZY":
+            output_centers = config.FUZZY_OUTPUT_CENTERS
+            input_gains = config.FUZZY_INPUT_GAINS
+            pos_output_centers = config.FUZZY_POS_OUTPUT_CENTERS
+            pos_input_gains = config.FUZZY_POS_INPUT_GAINS
+
+            if self.FAIRE_AUTOTUNING : 
+                tuner = fuzzy_optimizer.FuzzyAutoTuner(self.state, self.target_state, self.sim_time)
+                result = tuner.optimize( maxiter= 3000)
+                output_centers, input_gains, pos_output_centers, pos_input_gains = result["output_centers"], result["input_gains"], result["pos_output_centers"], result["pos_input_gains"]
+                fuzzy_optimizer.update_config_file(result)
+            fuzzy_pos = FuzzyController(self.state, pos_output_centers, pos_input_gains)
+            fuzzy_angle = FuzzyController(self.state, output_centers, input_gains)
+        #  
 
         # =============================================================
         # 2. INITIALISATION DE LA SIMULATION
         # =============================================================
-        # TODO 2 : créer le Robot, copier l'état initial, calculer le nombre de
+        # DONE 2 : créer le Robot, copier l'état initial, calculer le nombre de
         #          pas : steps = int(self.sim_time / config.dt)
         robot = Robot()
         state = self.state
@@ -76,7 +89,12 @@ class MainController:
                 theta_target = pos_pid_controller.compute(self.target_state[0],self.state[0])
                 theta_target = np.clip(theta_target,-0.17,0.17)
                 u = -theta_pid_controller.compute(theta_target,state[2])
-                
+
+            else : 
+                theta_target = fuzzy_pos.compute([state[0],-state[1]])
+                theta_target = np.clip(theta_target,-config.FUZZY_TARGET_THETA_MAX,config.FUZZY_TARGET_THETA_MAX)
+                u = -fuzzy_angle.compute([np.degrees(state[2]-theta_target), -state[3]])
+
             u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
             state = robot.step(state, u, config.dt)
             if abs(state[2]) >= np.pi/2:
@@ -86,7 +104,8 @@ class MainController:
             self.history['theta'].append(state[2])
             self.history['x'].append(state[0])
             self.history['u'].append(u)
-            self.history['target_theta'].append(self.target_state[2])               
+            self.history['target_theta'].append(self.target_state[2]) 
+
 
         #   a) calculer la commande u selon le contrôleur choisi.
         #
