@@ -52,7 +52,7 @@ class MainController:
         dummy_controller = DummyController()
         pos_pid_controller = PID(config.PID_Pos_Kp,config.PID_Pos_Ki,config.PID_Pos_Kd,config.dt)
         theta_pid_controller = PID(config.PID_Kp,config.PID_Ki,config.PID_Kd,config.dt)
-
+        lqr_controller = LQR(config.LQR_Q,config.LQR_R)
         #   
 
         # =============================================================
@@ -76,6 +76,8 @@ class MainController:
                 theta_target = pos_pid_controller.compute(self.target_state[0],self.state[0])
                 theta_target = np.clip(theta_target,-0.17,0.17)
                 u = -theta_pid_controller.compute(theta_target,state[2])
+            elif self.TYPE_CONTROLEUR == "LQR":
+                u = lqr_controller.compute(state,self.target_state)
                 
             u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
             state = robot.step(state, u, config.dt)

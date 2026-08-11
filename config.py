@@ -25,7 +25,7 @@ g = 9.81
 #        cartes, capteurs), m_roue = une seule roue.
 m_roue = 0.046      # TODO : masse d'une roue (kg)
 M = 0.972           # TODO : masse totale du chariot (kg)
-m = 0.39           # TODO : masse du pendule / partie haute (kg)
+m = 0.39           # TODO : masse du pendule / partie haute (kg) 
 M_corps = M-2*m_roue     # TODO : masse du corps sans les deux roues (utile pour l'inertie)
 
 # --- Dimensions (m) ---
@@ -85,7 +85,7 @@ t_max = 10.0   # Durée par défaut d'une simulation (s)
 # main pour comprendre l'effet de chaque terme.
 
 # --- PID : boucle interne (angle) ---
-PID_Kp = 40    # TODO : à régler
+PID_Kp = 40     # TODO : à régler
 PID_Ki = 0.0
 PID_Kd = 1
 
@@ -98,8 +98,8 @@ PID_Pos_Kd = 0.1    # TODO
 
 # --- LQR : matrices de pondération ---
 # Q pénalise les écarts d'état [x, dx, theta, dtheta], R pénalise l'effort moteur.
-LQR_Q = np.diag([1.0, 1.0, 1.0, 1.0])   # TODO 
-LQR_R = 1.0                             # TODO
+LQR_Q = np.diag([1.098274, 13.06, 41.20, 33.34])   # TODO 
+LQR_R = 6                            # TODO
 
 # --- LOGIQUE FLOUE : boucle interne (angle -> commande PWM) ---
 # FUZZY_OUTPUT_CENTERS : centres de gravité des classes de sortie
