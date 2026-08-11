@@ -98,8 +98,8 @@ PID_Pos_Kd = 0.1    # TODO
 
 # --- LQR : matrices de pondération ---
 # Q pénalise les écarts d'état [x, dx, theta, dtheta], R pénalise l'effort moteur.
-LQR_Q = np.diag([1.098274, 13.06, 41.20, 33.34])   # TODO 
-LQR_R = 6                            # TODO
+LQR_Q = np.diag([4,1,50,1])   # TODO 
+LQR_R = 8                            # TODO
 
 # --- LOGIQUE FLOUE : boucle interne (angle -> commande PWM) ---
 # FUZZY_OUTPUT_CENTERS : centres de gravité des classes de sortie

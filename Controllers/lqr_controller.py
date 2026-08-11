@@ -442,7 +442,7 @@ class LQR:
         # self.K a la forme (1, 4) (une matrice ligne). 
         # Complète la ligne ci-dessous :
         
-        u = self.K@error # <-- à remplacer, doit être un float (pas un tableau)
+        u = -self.K@error # <-- à remplacer, doit être un float (pas un tableau)
         
         # ============================================================
         # FIN TODO 3
