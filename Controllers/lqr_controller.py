@@ -341,7 +341,7 @@ class LQR:
         accélération demandée, pas une force ni un rapport cyclique --
         exactement comme :
  
-            accel_lqr = -(K1*x + K2*x_dot + K3*theta + K4*theta_dot)
+            accel_lqr = -(K1*x  + K2*x_dot + K3*theta + K4*theta_dot)
  
         Système d'état:
             dx/dt = A * x + B * u   avec u = ddot{x} (m/s²)
@@ -361,7 +361,7 @@ class LQR:
         btheta = config.btheta
  
         # ============================================================
-        # TODO 6 : Modèle "accélération commandée"
+        # DONE 6 : Modèle "accélération commandée"
         # ============================================================
         # Intuition physique : ici, on suppose que la boucle bas-niveau
         # (moteur + asservissement de vitesse/couple) est assez rapide pour
@@ -383,10 +383,13 @@ class LQR:
         #
         # Indice : np.array([[...], [...], [...], [...]]) pour chacune.
  
-        I_total = None  # <-- à remplacer (étape a)
- 
-        A = None  # <-- à remplacer (étape b, matrice 4x4)
-        B = None  # <-- à remplacer (étape c, matrice 4x1)
+        I_total = config.I + m * l**2 # <-- à remplacer (étape a)
+        A12, A34, A43, A44 = I_total, I_total, m*g*l, btheta
+        A = 1/I_total*np.array([[0, A12, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, A34],
+                                [0, 0, A43, A44]])  # <-- à remplacer (étape b, matrice 4x4)
+        B = 1/I_total*np.array([[0],[1],[0],[(m*l-1)]]) # <-- à remplacer (étape c, matrice 4x1)
  
         # ============================================================
         # FIN TODO 6
