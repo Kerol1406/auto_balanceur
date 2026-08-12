@@ -59,11 +59,12 @@ class FuzzyController:
     #   ])
 
     RULE_TABLE = np.array([
-        [ 0,  1, 3, 4, 4],       
-        [ 0,  1, 3, 3, 4],   
-        [ 0,  1, 2, 3, 4],   
-        [ 0,  1, 1, 3, 4],   
-        [ 0,  0, 1, 3, 4]])   
+    # EG  G  C  D  ED
+    [ 4,  3, 1, 0, 0],   # TED
+    [ 4,  3, 2, 1, 0],   # TD
+    [ 4,  3, 2, 1, 0],   # E
+    [ 4,  3, 2, 1, 0],   # TG
+    [ 4,  4, 3, 1, 0]])  # TEG   
 
     def __init__(self, state, output_centers=(-1.0, -0.3, 0.0, 0.3, 1.0),
                  input_gains=(1.0, 1.0), verbose=False):

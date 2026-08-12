@@ -106,14 +106,14 @@ LQR_R = 1.0                             # TODO
 #                        [GV, GD, R, DD, DV], en RAPPORT CYCLIQUE (bornés à ±1)
 # FUZZY_INPUT_GAINS    : gains appliqués à [angle (deg), vitesse angulaire (rad/s)]
 #                        avant fuzzification (ils dilatent l'univers de discours)
-FUZZY_OUTPUT_CENTERS = np.array([-0.042774, -0.005382, 0.000000, 0.005382, 0.042774])  # TODO : np.array de 5 valeurs
-FUZZY_INPUT_GAINS = np.array([0.209960, 0.287696])  # TODO : np.array de 2 valeurs
+FUZZY_OUTPUT_CENTERS = np.array([-0.5622, -0.4425, 0.0000, 0.4425, 0.5622])  # TODO : np.array de 5 valeurs
+FUZZY_INPUT_GAINS =  np.array([5.4103, 2.8367])  # TODO : np.array de 2 valeurs
 
 # --- LOGIQUE FLOUE : boucle externe (position -> angle cible) ---
 # Cascade "flou dans flou" : mêmes règles et mêmes fonctions d'appartenance,
 # mais les entrées sont [x (m), dx (m/s)] et la sortie est un angle cible (rad).
-FUZZY_POS_OUTPUT_CENTERS = np.array([-0.258580, -0.045554, 0.000000, 0.045554, 0.258580])  # TODO : np.array de 5 angles cibles (rad)
-FUZZY_POS_INPUT_GAINS = np.array([34.138401, 1.029506])  # TODO : np.array de 2 gains
+FUZZY_POS_OUTPUT_CENTERS = np.array([-0.2617, -0.0492, 0.0000, 0.0492, 0.2617])   # TODO : np.array de 5 angles cibles (rad)
+FUZZY_POS_INPUT_GAINS = np.array([10.0964, 12.3118])  # TODO : np.array de 2 gains
 FUZZY_TARGET_THETA_MAX = 0.17     # Saturation de l'angle cible (rad), ~10 degrés
 
 # =====================================================================

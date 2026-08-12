@@ -61,7 +61,7 @@ class MainController:
 
             if self.FAIRE_AUTOTUNING : 
                 tuner = fuzzy_optimizer.FuzzyAutoTuner(self.state, self.target_state, self.sim_time)
-                result = tuner.optimize( maxiter= 3000)
+                result = tuner.optimize( maxiter= 300)
                 output_centers, input_gains, pos_output_centers, pos_input_gains = result["output_centers"], result["input_gains"], result["pos_output_centers"], result["pos_input_gains"]
                 fuzzy_optimizer.update_config_file(result)
             fuzzy_pos = FuzzyController(self.state, pos_output_centers, pos_input_gains)
@@ -93,7 +93,7 @@ class MainController:
             else : 
                 theta_target = fuzzy_pos.compute([state[0],-state[1]])
                 theta_target = np.clip(theta_target,-config.FUZZY_TARGET_THETA_MAX,config.FUZZY_TARGET_THETA_MAX)
-                u = -fuzzy_angle.compute([np.degrees(state[2]-theta_target), -state[3]])
+                u = -fuzzy_angle.compute([np.degrees(state[2] - theta_target), -state[3]])
 
             u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
             state = robot.step(state, u, config.dt)
