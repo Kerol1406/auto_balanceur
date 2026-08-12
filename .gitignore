@@ -32,6 +32,10 @@ desktop.ini
 
 # --- Modeles entraines ---
 *.pt
+Ressources\SAC\best_models
+Ressources\SAC\tensorboard_logs
+Ressources\SAC\experiment_config.json
+Ressources\SAC\final_model_stage_{i+1}.zip
 
 # --- Note ---
 # Les figures, CSV de trajectoires et lookup tables produits par le projet

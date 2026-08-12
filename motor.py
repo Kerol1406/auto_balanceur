@@ -78,10 +78,11 @@ class Motor:
         Returns:
             float: couple en N.m
         """
-        if duty < -1 :
+        duty = np.clip(duty, -1, 1)
+        """if duty < -1 :
             duty = -1
         elif duty > 1 :
-            duty = 1
+            duty = 1"""
         
         # DONE 8 : saturer duty puis appliquer tau = K_duty * duty - C_bemf * omega
         return self.K_duty * duty - self.C_bemf * omega

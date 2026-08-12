@@ -94,7 +94,8 @@ def main():
                 buffer_size=config.SAC_BUFFER_SIZE, 
                 batch_size=config.SAC_BATCH_SIZE, 
                 gamma=config.SAC_GAMMA, 
-                tau=config.SAC_TAU, tensorboard_log=LOG_DIR
+                tau=config.SAC_TAU, 
+                policy_kwargs=POLICY_KWARGS, tensorboard_log=LOG_DIR, verbose=1
                 
                 )
         else:

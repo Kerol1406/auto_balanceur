@@ -45,11 +45,11 @@ class SACController:
         # DONE 4: normaliser l'observation avec self.obs_bounds.
         obs_normalisee = obs / self.obs_bounds
 
-        # DOne 5: calculer l'action du modèle en mode déterministe.
+        # DONE 5: calculer l'action du modèle en mode déterministe.
         # Indice: self.model.predict(observation, deterministic=True)
-        action = self.model.predict(obs_normalisee, deterministic=True)   
+        action, _ = self.model.predict(obs_normalisee, deterministic=True)
 
         # DONE 6: extraire le duty, puis saturer dans [-self.max_duty, self.max_duty].
-        duty = np.clip(float(action[0]), -self.max_duty, self.max_duty)
+        duty = np.clip(float(float(np.asarray(action).squeeze())), -self.max_duty, self.max_duty)
 
         return duty
