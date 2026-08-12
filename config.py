@@ -108,6 +108,20 @@ PID_Pos_I_MAX = 0.5      # Saturation du terme intégral de la boucle externe
 LQR_Q = np.diag([159.0804,   7.5728, 109.7497,   2.0432])   #([4,1,100,1]) #([ 0.99877365, 12.98244479, 31.83928863, 33.30907998])#([4,1,100,1])   # TODO 
 LQR_R =6.8060   # 8 #6.76476230776267 #8               # TODO
 
+# --- LOGIQUE FLOUE : boucle interne (angle -> commande PWM) ---
+# FUZZY_OUTPUT_CENTERS : centres de gravité des classes de sortie
+#                        [GV, GD, R, DD, DV], en RAPPORT CYCLIQUE (bornés à ±1)
+# FUZZY_INPUT_GAINS    : gains appliqués à [angle (deg), vitesse angulaire (rad/s)]
+#                        avant fuzzification (ils dilatent l'univers de discours)
+FUZZY_OUTPUT_CENTERS = np.array([-0.5622, -0.4425, 0.0000, 0.4425, 0.5622])  # TODO : np.array de 5 valeurs
+FUZZY_INPUT_GAINS =  np.array([5.4103, 2.8367])  # TODO : np.array de 2 valeurs
+
+# --- LOGIQUE FLOUE : boucle externe (position -> angle cible) ---
+# Cascade "flou dans flou" : mêmes règles et mêmes fonctions d'appartenance,
+# mais les entrées sont [x (m), dx (m/s)] et la sortie est un angle cible (rad).
+FUZZY_POS_OUTPUT_CENTERS = np.array([-0.2617, -0.0492, 0.0000, 0.0492, 0.2617])   # TODO : np.array de 5 angles cibles (rad)
+FUZZY_POS_INPUT_GAINS = np.array([10.0964, 12.3118])  # TODO : np.array de 2 gains
+FUZZY_TARGET_THETA_MAX = 0.17     # Saturation de l'angle cible (rad), ~10 degrés
 # --- PARAMÈTRES DE CONTRÔLE: LOGIQUE FLOUE ---
 # Centres de gravité des classes de sortie [GV, GD, R, DD, DV]
 # ATTENTION : depuis le passage a la commande PWM, ces centres sont des
