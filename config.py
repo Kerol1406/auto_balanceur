@@ -87,6 +87,9 @@ CHUTE_X_MAX = 1.5  # Position maximale avant de considérer que le robot est tom
 # main pour comprendre l'effet de chaque terme.
 
 # --- PID : boucle interne (angle) ---
+PID_Kp = 40     # TODO : à régler
+PID_Ki = 0.0
+PID_Kd = 1
 PID_Kp = 17.076114  # TODO : à régler
 PID_Ki = 2.891359
 PID_Kd = 0.222861
@@ -102,8 +105,8 @@ PID_I_MAX = 1.0          # Saturation du terme intégral de la boucle interne
 PID_Pos_I_MAX = 0.5      # Saturation du terme intégral de la boucle externe
 # --- LQR : matrices de pondération ---
 # Q pénalise les écarts d'état [x, dx, theta, dtheta], R pénalise l'effort moteur.
-LQR_Q = np.diag([1.0, 1.0, 1.0, 1.0])   # TODO 
-LQR_R = 1.0                             # TODO
+LQR_Q = np.diag([159.0804,   7.5728, 109.7497,   2.0432])   #([4,1,100,1]) #([ 0.99877365, 12.98244479, 31.83928863, 33.30907998])#([4,1,100,1])   # TODO 
+LQR_R =6.8060   # 8 #6.76476230776267 #8               # TODO
 
 # --- LOGIQUE FLOUE : boucle interne (angle -> commande PWM) ---
 # FUZZY_OUTPUT_CENTERS : centres de gravité des classes de sortie
