@@ -122,6 +122,22 @@ FUZZY_INPUT_GAINS =  np.array([5.4103, 2.8367])  # TODO : np.array de 2 valeurs
 FUZZY_POS_OUTPUT_CENTERS = np.array([-0.2617, -0.0492, 0.0000, 0.0492, 0.2617])   # TODO : np.array de 5 angles cibles (rad)
 FUZZY_POS_INPUT_GAINS = np.array([10.0964, 12.3118])  # TODO : np.array de 2 gains
 FUZZY_TARGET_THETA_MAX = 0.17     # Saturation de l'angle cible (rad), ~10 degrés
+# --- PARAMÈTRES DE CONTRÔLE: LOGIQUE FLOUE ---
+# Centres de gravité des classes de sortie [GV, GD, R, DD, DV]
+# ATTENTION : depuis le passage a la commande PWM, ces centres sont des
+# RAPPORTS CYCLIQUES dans [-1, 1] et non plus des couples en N.m.
+# Gains appliqués aux entrées [angle (deg), vitesse angulaire (rad/s)] avant fuzzification
+# Ces valeurs sont mises à jour par Optimizers/fuzzy_optimizer.py
+FUZZY_OUTPUT_CENTERS = np.array([-0.5622, -0.4425, 0.0000, 0.4425, 0.5622])
+FUZZY_INPUT_GAINS = np.array([5.4103, 2.8367])
+
+# FLOU POSITION de la cascade floue (Boucle Externe - Lente)
+# Cascade "flou dans flou" : un second contrôleur flou (mêmes table de règles
+# et fonctions d'appartenance, univers adapté via les gains d'entrée) prend
+# [position x (m), vitesse dx (m/s)] et sort l'angle cible (rad).
+FUZZY_POS_OUTPUT_CENTERS = np.array([-0.2617, -0.0492, 0.0000, 0.0492, 0.2617])  # angles cibles (rad)
+FUZZY_POS_INPUT_GAINS = np.array([10.0964, 12.3118])  # mise à l'échelle de [x, dx] vers l'univers du fuzzifier
+FUZZY_TARGET_THETA_MAX = 0.17  # saturation de l'angle cible (rad), comme pour le PID
 
 # =====================================================================
 # 5. APPRENTISSAGE PAR RENFORCEMENT (SAC)
