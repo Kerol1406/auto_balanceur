@@ -18,7 +18,7 @@ from .dummy_controller import DummyController
 from .pid_controller import PIDCascade
 from .lqr_controller import LQR
 from .fuzzy_controller import FuzzyController, save_cascade_lookup_tables
-# from .sac_controller import SACController        
+from .sac_controller import SACController        
 
 from Optimizers import pid_optimizer
 from Optimizers import lqr_optimizer
@@ -80,6 +80,20 @@ class MainController:
 
         #   
 
+
+        if self.TYPE_CONTROLEUR == "SAC":
+            print(">>> Contrôleur SAC activé")
+
+            if self.FAIRE_AUTOTUNING:
+                print(">>> Entraînement SAC activé.")
+                print(">>> Le modèle entraîné sera sauvegardé dans config.SAC_POLICY_PATH.")
+                from Optimizers import sac_trainer
+                sac_trainer.main()
+                print(">>> Entraînement SAC terminé.")
+
+            print(f"Modèle chargé: {config.SAC_POLICY_PATH}")
+            sac_controller = SACController()
+
         # =============================================================
         # 2. INITIALISATION DE LA SIMULATION
         # =============================================================
@@ -95,6 +109,17 @@ class MainController:
         # =============================================================
         # TODO 3 : pour chaque pas i :
         for i in range(steps):
+            if self.TYPE_CONTROLEUR == "DUMMY":
+                u = dummy_controller.compute(state,self.target_state)
+            elif self.TYPE_CONTROLEUR == "PID":
+                theta_target = pos_pid_controller.compute(self.target_state[0],self.state[0])
+                theta_target = np.clip(theta_target,-0.17,0.17)
+                u = -theta_pid_controller.compute(theta_target,state[2])
+
+            elif self.TYPE_CONTROLEUR == "SAC":
+                u = sac_controller.compute(state)
+                target_theta = 0.0
+                
             x_actuel = state[0]
             theta_actuel = state[2]
 

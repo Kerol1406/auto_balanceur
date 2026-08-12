@@ -28,28 +28,28 @@ class SACController:
         if max_duty is None:
             max_duty = config.SAC_MAX_DUTY
 
-        # TODO 1: charger le modèle SAC depuis policy_path.
+        # DONE 1: charger le modèle SAC depuis policy_path. 
         # Indice: SAC.load(chemin)
-        self.model = None
+        self.model = SAC.load(policy_path)
 
-        # TODO 2: récupérer les bornes de normalisation depuis config.py.
+        # DONE 2: récupérer les bornes de normalisation depuis config.py.
         # Indice: np.asarray(..., dtype=np.float32)
-        self.obs_bounds = None
+        self.obs_bounds = np.asarray(config.SAC_OBS_BOUNDS, dtype=np.float32)
 
         self.max_duty = float(max_duty)
 
     def compute(self, state):
-        # TODO 3: convertir state en tableau float32.
-        obs = None
+        # DONE 3: convertir state en tableau float32.   
+        obs = np.asarray(state, dtype=np.float32)  
 
-        # TODO 4: normaliser l'observation avec self.obs_bounds.
-        obs_normalisee = None
+        # DONE 4: normaliser l'observation avec self.obs_bounds.
+        obs_normalisee = obs / self.obs_bounds
 
-        # TODO 5: calculer l'action du modèle en mode déterministe.
+        # DONE 5: calculer l'action du modèle en mode déterministe.
         # Indice: self.model.predict(observation, deterministic=True)
-        action = None
+        action, _ = self.model.predict(obs_normalisee, deterministic=True)
 
-        # TODO 6: extraire le duty, puis saturer dans [-self.max_duty, self.max_duty].
-        duty = None
+        # DONE 6: extraire le duty, puis saturer dans [-self.max_duty, self.max_duty].
+        duty = np.clip(float(np.asarray(action).squeeze()), -self.max_duty, self.max_duty)
 
         return duty

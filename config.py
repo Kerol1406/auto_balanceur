@@ -128,14 +128,29 @@ FUZZY_TARGET_THETA_MAX = 0.17     # Saturation de l'angle cible (rad), ~10 degr�
 # =====================================================================
 # Hyperparamètres du Soft Actor-Critic #TODO.
 
-SAC_POLICY_PATH = "Ressources/sac_policy.pt"  # Où sauvegarder / charger la politique
+SAC_POLICY_PATH = "Ressources/SAC/best_model.zip"  # Où sauvegarder / charger la politique
 SAC_CURRICULUM = None          
-SAC_HIDDEN_SIZE = None        # Neurones par couche cachée
-SAC_LR = None                # Pas d'apprentissage
-SAC_GAMMA = None             # Facteur d'actualisation
-SAC_TAU = None               # Coefficient de mise à jour douce des réseaux cibles
-SAC_BATCH_SIZE = None         # Taille des mini-lots tirés du buffer
-SAC_BUFFER_SIZE = None    # Capacité du replay buffer
-SAC_TOTAL_STEPS = None    # Nombre de pas d'entraînement
-SAC_EPISODE_STEPS = None     # Longueur maximale d'un épisode
-SAC_SEED = None                # Graine aléatoire (reproductibilité)
+SAC_HIDDEN_SIZE = 32        # Neurones par couche cachée
+SAC_LR = 3e-4                # Pas d'apprentissage
+SAC_GAMMA = 0.99             # Facteur d'actualisation
+SAC_TAU = 0.005               # Coefficient de mise à jour douce des réseaux cibles
+SAC_BATCH_SIZE = 256         # Taille des mini-lots tirés du buffer
+SAC_BUFFER_SIZE = 200_000    # Capacité du replay buffer
+SAC_TOTAL_STEPS = 650_000    # Nombre de pas d'entraînement
+SAC_EPISODE_STEPS = 1000     # Longueur maximale d'un épisode
+SAC_SEED = 0                # Graine aléatoire (reproductibilité)
+
+
+SAC_OBS_BOUNDS = np.array([0.5, 2.0, np.pi / 4, 5.0], dtype=np.float32)  # Normalisation des observations   
+SAC_MAX_DUTY = PWM_MAX  # Saturation de la commande PWM dans l'environnement d'entraînement
+
+ # Curriculum learning : liste de tuples (theta_deg, domain_randomization, learning_rate, steps)
+SAC_CURRICULUM   = [
+    (5, False, 3e-4, 100_000),
+    (10, False, 3e-4, 150_000),
+    (15, False, 1e-4, 200_000),
+    (15, True, 1e-4, 200_000),   
+]
+
+#Poids de reward: theta, theta_dot, x, x_dot, duty, delta_duty
+SAC_REWARD_WEIGHTS = (2.0, 0.10, 0.60, 0.10, 0.02, 0.05)
