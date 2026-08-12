@@ -1,0 +1,4 @@
+../BSP/Usart1/bsp_usart2.c:5:6:USART2_init	40	static
+../BSP/Usart1/bsp_usart2.c:48:6:USART2_Send_U8	16	static
+../BSP/Usart1/bsp_usart2.c:62:6:USART2_Send_ArrayU8	16	static
+../BSP/Usart1/bsp_usart2.c:72:6:USART2_IRQHandler	16	static

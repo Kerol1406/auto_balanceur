@@ -1,0 +1,17 @@
+../BSP/IIC_Software/IOI2C.c:13:6:IIC_MPU6050_Init	1
+../BSP/IIC_Software/IOI2C.c:31:5:IIC_Start	3
+../BSP/IIC_Software/IOI2C.c:53:6:IIC_Stop	1
+../BSP/IIC_Software/IOI2C.c:72:5:IIC_Wait_Ack	3
+../BSP/IIC_Software/IOI2C.c:102:6:IIC_Ack	1
+../BSP/IIC_Software/IOI2C.c:121:6:IIC_NAck	1
+../BSP/IIC_Software/IOI2C.c:139:6:IIC_Send_Byte	2
+../BSP/IIC_Software/IOI2C.c:164:5:i2cWrite	5
+../BSP/IIC_Software/IOI2C.c:195:5:i2cRead	5
+../BSP/IIC_Software/IOI2C.c:229:4:IIC_Read_Byte	4
+../BSP/IIC_Software/IOI2C.c:257:15:I2C_ReadOneByte	1
+../BSP/IIC_Software/IOI2C.c:287:4:IICreadBytes	3
+../BSP/IIC_Software/IOI2C.c:317:4:IICwriteBytes	2
+../BSP/IIC_Software/IOI2C.c:342:4:IICreadByte	1
+../BSP/IIC_Software/IOI2C.c:355:15:IICwriteByte	1
+../BSP/IIC_Software/IOI2C.c:369:4:IICwriteBits	2
+../BSP/IIC_Software/IOI2C.c:396:4:IICwriteBit	2

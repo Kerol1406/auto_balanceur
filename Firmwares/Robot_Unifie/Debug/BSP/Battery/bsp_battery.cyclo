@@ -1,0 +1,5 @@
+../BSP/Battery/bsp_battery.c:5:6:Battery_init	3
+../BSP/Battery/bsp_battery.c:40:17:Battery_Get	3
+../BSP/Battery/bsp_battery.c:57:10:Battery_Get_Average	3
+../BSP/Battery/bsp_battery.c:79:7:Get_Measure_Volotage	1
+../BSP/Battery/bsp_battery.c:91:7:Get_Battery_Volotage	1

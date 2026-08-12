@@ -1,0 +1,3 @@
+../BSP/bsp.c:9:6:bsp_init	8	static
+../BSP/bsp.c:50:6:JTAG_Set	24	static
+../BSP/bsp.c:60:6:DIY_NVIC_PriorityGroupConfig	24	static

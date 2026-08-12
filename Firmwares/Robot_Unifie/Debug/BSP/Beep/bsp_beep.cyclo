@@ -1,0 +1,2 @@
+../BSP/Beep/bsp_beep.c:5:6:init_beep	1
+../BSP/Beep/bsp_beep.c:26:6:open_beep	1

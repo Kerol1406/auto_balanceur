@@ -1,0 +1,5 @@
+../BSP/Key/bsp_key.c:8:16:Key1_is_Press	2
+../BSP/Key/bsp_key.c:20:9:Key1_Long_Press	4
+../BSP/Key/bsp_key.c:68:9:Key1_State	3
+../BSP/Key/bsp_key.c:85:6:Key1_GPIO_Init	1
+../BSP/Key/bsp_key.c:100:6:KEYAll_GPIO_Init	1
