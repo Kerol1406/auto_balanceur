@@ -23,7 +23,7 @@ class BalanceEnv(gym.Env):
 
     def __init__(
         self,
-        theta_fail=np.pi / 4,
+        theta_fail=np.pi / 2,
         x_fail=0.5,
         max_episode_steps=None,
         init_theta_range=np.radians(5),
@@ -158,7 +158,7 @@ class BalanceEnv(gym.Env):
         truncated = self.step_count>=self.max_episode_steps
 
         if terminated:
-            reward -= 20.0
+            reward -= 2.0
 
         return self._get_obs(), reward, terminated, truncated, self._get_info()
  
