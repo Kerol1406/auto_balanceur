@@ -51,9 +51,7 @@ class MainController:
         # TODO 1 : selon self.TYPE_CONTROLEUR, instancier ce qu'il faut.
         if self.FAIRE_AUTOTUNING:
             if self.TYPE_CONTROLEUR == "LQR":
-                initial_state = np.array([0, 0.0, -50 * np.pi / 180, 0.0])
-                target_state = np.array([0.0, 0.0, 0.0, 0.0])
-                Lqr_optimizer = lqr_optimizer.LQRAutoTuner(initial_state, target_state, sim_time=self.sim_time)
+                Lqr_optimizer = lqr_optimizer.LQRAutoTuner(self.state,self.target_state, sim_time=self.sim_time)
                 result = Lqr_optimizer.optimize()
                 print(result)
                 lqr_controller = LQR(result['Q'],result['R'])
