@@ -5,7 +5,16 @@ from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.monitor import Monitor
 
+from pathlib import Path
+import sys
+
+PROJECT_ROOT = next(
+    parent for parent in Path(__file__).resolve().parents
+    if (parent / "config.py").exists()
+)
+sys.path.insert(0, str(PROJECT_ROOT))
 import config
+
 from Optimizers.sac_env import BalanceEnv
 
 
@@ -21,12 +30,12 @@ def set_learning_rate(model, lr):
     model.learning_rate = lr
     for opt in (model.policy.actor.optimizer, model.policy.critic.optimizer):
         for group in opt.param_groups:
-            # TODO 1: remplacer le learning rate du groupe d'optimiseur.
-            group["lr"] = None
+            # DONE 1: remplacer le learning rate du groupe d'optimiseur.
+            group["lr"] = lr
     if getattr(model, "ent_coef_optimizer", None) is not None:
         for group in model.ent_coef_optimizer.param_groups:
-            # TODO 2: même mise à jour pour l'optimiseur d'entropie.
-            group["lr"] = None
+            # DONE 2: même mise à jour pour l'optimiseur d'entropie.
+            group["lr"] = lr
 
 
 def save_experiment_config():
@@ -50,10 +59,10 @@ def save_experiment_config():
 
 
 def make_env(theta_deg, domain_randomization):
-    # TODO 3: créer BalanceEnv avec init_theta_range et domain_randomization,
+    # DONE 3: créer BalanceEnv avec init_theta_range et domain_randomization, 
     # puis l'envelopper dans Monitor(...).
-    env = None
-    return env
+    env = BalanceEnv(init_theta_range=np.radians(theta_deg), domain_randomization=domain_randomization)
+    return Monitor(env)
 
 
 def main():
@@ -77,21 +86,41 @@ def main():
         )
 
         if model is None:
-            # TODO 4: créer le modèle SAC avec les paramètres de config.py.
-            model = None
+            # DONE 4: créer le modèle SAC avec les paramètres de config.py.
+            model = SAC("MlpPolicy", 
+                env, 
+                learning_rate=config.SAC_LR, 
+                buffer_size=config.SAC_BUFFER_SIZE, 
+                batch_size=config.SAC_BATCH_SIZE, 
+                gamma=config.SAC_GAMMA, 
+                tau=config.SAC_TAU, 
+                policy_kwargs=POLICY_KWARGS, tensorboard_log=LOG_DIR, verbose=1
+                
+                )
         else:
-            # TODO 5: garder le même modèle mais changer son environnement,
+            # DONE 5: garder le même modèle mais changer son environnement,
             # puis adapter le learning rate au stage courant.
-            pass
+            #env = make_env(theta_deg, dr)   
+            model.set_env(env)
+            set_learning_rate(model, lr)
+            
 
         print(f"--- Étape {i+1}/{len(STAGES)}: theta=+/-{theta_deg}deg, "
               f"bruit_capteur={dr}, lr={lr}, {steps} pas ---")
 
-        # TODO 6: lancer model.learn(...), sans remettre le compteur de temps à zéro.
+        # DONE 6: lancer model.learn(...), sans remettre le compteur de temps à zéro.
+        model.learn(total_timesteps=steps, 
+                    callback=eval_callback, 
+                    progress_bar=True, 
+                    reset_num_timesteps=False, 
+                    tb_log_name=stage_name                    
+        ) 
 
-        # TODO 7: sauvegarder le modèle final du stage.
+        # DONE 7: sauvegarder le modèle final du stage.
+        {model.save("Ressources/SAC/final_model_stage_{i+1}.zip")}
 
-    # TODO 8: sauvegarder le modèle final dans SAVE_PATH.
+    # DONE 8: sauvegarder le modèle final dans SAVE_PATH.
+    model.save(SAVE_PATH)
 
 
 if __name__ == "__main__":
