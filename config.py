@@ -108,20 +108,22 @@ PID_Pos_I_MAX = 0.5      # Saturation du terme intégral de la boucle externe
 LQR_Q = np.diag([159.0804,   7.5728, 109.7497,   2.0432])   #([4,1,100,1]) #([ 0.99877365, 12.98244479, 31.83928863, 33.30907998])#([4,1,100,1])   # TODO 
 LQR_R =6.8060   # 8 #6.76476230776267 #8               # TODO
 
-# --- LOGIQUE FLOUE : boucle interne (angle -> commande PWM) ---
-# FUZZY_OUTPUT_CENTERS : centres de gravité des classes de sortie
-#                        [GV, GD, R, DD, DV], en RAPPORT CYCLIQUE (bornés à ±1)
-# FUZZY_INPUT_GAINS    : gains appliqués à [angle (deg), vitesse angulaire (rad/s)]
-#                        avant fuzzification (ils dilatent l'univers de discours)
-FUZZY_OUTPUT_CENTERS = None   # TODO : np.array de 5 valeurs
-FUZZY_INPUT_GAINS = None      # TODO : np.array de 2 valeurs
+# --- PARAMÈTRES DE CONTRÔLE: LOGIQUE FLOUE ---
+# Centres de gravité des classes de sortie [GV, GD, R, DD, DV]
+# ATTENTION : depuis le passage a la commande PWM, ces centres sont des
+# RAPPORTS CYCLIQUES dans [-1, 1] et non plus des couples en N.m.
+# Gains appliqués aux entrées [angle (deg), vitesse angulaire (rad/s)] avant fuzzification
+# Ces valeurs sont mises à jour par Optimizers/fuzzy_optimizer.py
+FUZZY_OUTPUT_CENTERS = np.array([-0.5622, -0.4425, 0.0000, 0.4425, 0.5622])
+FUZZY_INPUT_GAINS = np.array([5.4103, 2.8367])
 
-# --- LOGIQUE FLOUE : boucle externe (position -> angle cible) ---
-# Cascade "flou dans flou" : mêmes règles et mêmes fonctions d'appartenance,
-# mais les entrées sont [x (m), dx (m/s)] et la sortie est un angle cible (rad).
-FUZZY_POS_OUTPUT_CENTERS = None   # TODO : np.array de 5 angles cibles (rad)
-FUZZY_POS_INPUT_GAINS = None      # TODO : np.array de 2 gains
-FUZZY_TARGET_THETA_MAX = 0.17     # Saturation de l'angle cible (rad), ~10 degrés
+# FLOU POSITION de la cascade floue (Boucle Externe - Lente)
+# Cascade "flou dans flou" : un second contrôleur flou (mêmes table de règles
+# et fonctions d'appartenance, univers adapté via les gains d'entrée) prend
+# [position x (m), vitesse dx (m/s)] et sort l'angle cible (rad).
+FUZZY_POS_OUTPUT_CENTERS = np.array([-0.2617, -0.0492, 0.0000, 0.0492, 0.2617])  # angles cibles (rad)
+FUZZY_POS_INPUT_GAINS = np.array([10.0964, 12.3118])  # mise à l'échelle de [x, dx] vers l'univers du fuzzifier
+FUZZY_TARGET_THETA_MAX = 0.17  # saturation de l'angle cible (rad), comme pour le PID
 
 # =====================================================================
 # 5. APPRENTISSAGE PAR RENFORCEMENT (SAC)
