@@ -1,0 +1,6 @@
+../BSP/Usart1/usart.c:7:5:__io_putchar	16	static
+../BSP/Usart1/usart.c:14:5:_write	32	static
+../BSP/Usart1/usart.c:32:6:uart_init	40	static
+../BSP/Usart1/usart.c:80:6:USART1_Send_U8	16	static
+../BSP/Usart1/usart.c:93:6:USART1_Send_ArrayU8	16	static
+../BSP/Usart1/usart.c:103:6:USART1_IRQHandler	16	static

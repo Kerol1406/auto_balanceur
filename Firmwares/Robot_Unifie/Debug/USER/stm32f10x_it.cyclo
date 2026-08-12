@@ -1,0 +1,9 @@
+../USER/stm32f10x_it.c:29:6:NMI_Handler	1
+../USER/stm32f10x_it.c:33:6:HardFault_Handler	1
+../USER/stm32f10x_it.c:41:6:MemManage_Handler	1
+../USER/stm32f10x_it.c:50:6:BusFault_Handler	1
+../USER/stm32f10x_it.c:58:6:UsageFault_Handler	1
+../USER/stm32f10x_it.c:66:6:SVC_Handler	1
+../USER/stm32f10x_it.c:70:6:DebugMon_Handler	1
+../USER/stm32f10x_it.c:74:6:PendSV_Handler	1
+../USER/stm32f10x_it.c:78:6:SysTick_Handler	1

@@ -1,0 +1,2 @@
+../BSP/Motor/motor.c:10:6:BalanceCar_Motor_Init	16	static
+../BSP/Motor/motor.c:30:6:BalanceCar_PWM_Init	48	static

@@ -1,0 +1,17 @@
+../BSP/IIC_Software/IOI2C.c:13:6:IIC_MPU6050_Init	16	static
+../BSP/IIC_Software/IOI2C.c:31:5:IIC_Start	8	static
+../BSP/IIC_Software/IOI2C.c:53:6:IIC_Stop	8	static
+../BSP/IIC_Software/IOI2C.c:72:5:IIC_Wait_Ack	16	static
+../BSP/IIC_Software/IOI2C.c:102:6:IIC_Ack	8	static
+../BSP/IIC_Software/IOI2C.c:121:6:IIC_NAck	8	static
+../BSP/IIC_Software/IOI2C.c:139:6:IIC_Send_Byte	24	static
+../BSP/IIC_Software/IOI2C.c:164:5:i2cWrite	24	static
+../BSP/IIC_Software/IOI2C.c:195:5:i2cRead	16	static
+../BSP/IIC_Software/IOI2C.c:229:4:IIC_Read_Byte	24	static
+../BSP/IIC_Software/IOI2C.c:257:15:I2C_ReadOneByte	24	static
+../BSP/IIC_Software/IOI2C.c:287:4:IICreadBytes	32	static
+../BSP/IIC_Software/IOI2C.c:317:4:IICwriteBytes	24	static
+../BSP/IIC_Software/IOI2C.c:342:4:IICreadByte	16	static
+../BSP/IIC_Software/IOI2C.c:355:15:IICwriteByte	16	static
+../BSP/IIC_Software/IOI2C.c:369:4:IICwriteBits	32	static
+../BSP/IIC_Software/IOI2C.c:396:4:IICwriteBit	32	static

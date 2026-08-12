@@ -1,0 +1,5 @@
+../BSP/Battery/bsp_battery.c:5:6:Battery_init	32	static
+../BSP/Battery/bsp_battery.c:40:17:Battery_Get	24	static
+../BSP/Battery/bsp_battery.c:57:10:Battery_Get_Average	24	static
+../BSP/Battery/bsp_battery.c:79:7:Get_Measure_Volotage	16	static
+../BSP/Battery/bsp_battery.c:91:7:Get_Battery_Volotage	16	static

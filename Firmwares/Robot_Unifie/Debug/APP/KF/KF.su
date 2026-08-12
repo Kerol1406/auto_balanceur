@@ -1,0 +1,3 @@
+../APP/KF/KF.c:11:7:KF_X	200	static
+../APP/KF/KF.c:80:7:KF_Y	200	static
+../APP/KF/KF.c:149:6:mul	88	static

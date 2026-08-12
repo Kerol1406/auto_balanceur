@@ -1,0 +1,5 @@
+../BSP/Enconder/encoder.c:11:6:Encoder_Init_TIM3	40	static
+../BSP/Enconder/encoder.c:50:6:Encoder_Init_TIM4	40	static
+../BSP/Enconder/encoder.c:88:5:Read_Encoder	24	static
+../BSP/Enconder/encoder.c:107:6:TIM4_IRQHandler	4	static
+../BSP/Enconder/encoder.c:122:6:TIM3_IRQHandler	4	static
