@@ -27,7 +27,7 @@ TYPE_CONTROLEUR = "SAC"
 
 # True = lance l'optimiseur associé au contrôleur avant de simuler
 # False = utilise les paramètres déjà enregistrés dans config.py
-FAIRE_AUTOTUNING = True
+FAIRE_AUTOTUNING = False
 
 # True = affiche l'animation du robot à la fin de la simulation
 FAIRE_VISUALISATION = True

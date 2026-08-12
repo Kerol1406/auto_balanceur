@@ -1,0 +1,44 @@
+{
+    "algorithm": "SAC",
+    "policy_kwargs": {
+        "net_arch": [
+            32,
+            32
+        ]
+    },
+    "buffer_size": 200000,
+    "batch_size": 256,
+    "gamma": 0.99,
+    "tau": 0.005,
+    "action": "duty cycle PWM in [-1, 1]",
+    "stages": [
+        {
+            "stage": 1,
+            "theta_deg": 5,
+            "domain_rand": false,
+            "learning_rate": 0.0003,
+            "steps": 100000
+        },
+        {
+            "stage": 2,
+            "theta_deg": 10,
+            "domain_rand": false,
+            "learning_rate": 0.0003,
+            "steps": 150000
+        },
+        {
+            "stage": 3,
+            "theta_deg": 15,
+            "domain_rand": false,
+            "learning_rate": 0.0001,
+            "steps": 200000
+        },
+        {
+            "stage": 4,
+            "theta_deg": 15,
+            "domain_rand": true,
+            "learning_rate": 0.0001,
+            "steps": 200000
+        }
+    ]
+}
