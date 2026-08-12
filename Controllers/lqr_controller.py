@@ -18,8 +18,8 @@ class LQR:
 
     où x = [x, x_dot, theta, theta_dot]^T est le vecteur d'état:
         - x: position du chariot (m)
-        - x_dot: vitesse du chariot (m/s)
-        - theta: angle du pendule par rapport à la verticale (rad)
+        - x_dot: vites   cse du chariot (m/s)
+        - theta: angle du pendule par rapport à la verticale (rad) 
         - theta_dot: vitesse angulaire (rad/s)
 
     et u est la commande appliquée (rapport cyclique PWM dans [-1, 1])
@@ -49,7 +49,7 @@ class LQR:
     où K = [K_x, K_x_dot, K_theta, K_theta_dot] sont les gains optimaux calculés
     """
 
-    def __init__(self, Q=None, R=None, verbose=True):
+    def __init__(self, Q=None, R=None, verbose=False):
         """
         Initialise le contrôleur LQR.
 
@@ -86,13 +86,13 @@ class LQR:
 
         if Q is None:
             # TODO: remplace cette ligne par une matrice Q par défaut cohérente
-            Q = None  # <-- à remplacer
+            Q = np.diag([1.0, 1.0, 1.0, 1.0])  # <-- à remplacer
         else:
             Q = np.array(Q)
 
         if R is None:
             # TODO: remplace cette ligne par une valeur R par défaut cohérente
-            R = None  # <-- à remplacer
+            R = np.array([[1]])  # <-- à remplacer
         else:
             R = np.array([[R]]) if np.isscalar(R) else np.array(R)
         # ============================================================
@@ -107,7 +107,7 @@ class LQR:
 
         # Calcul des gains LQR optimaux
         self.K = self._compute_lqr_gains()
-
+        
         if self.verbose:
             self.print_system_info()
 
@@ -138,7 +138,7 @@ class LQR:
         duty_eq = 0.0
 
         # ============================================================
-        # TODO 2 : Linéarisation numérique par différences finies centrées
+        # DONE 2 : Linéarisation numérique par différences finies centrées
         # ============================================================
         # Rappel théorique :
         #   A = ∂f/∂état  (jacobienne de la dynamique par rapport à l'état)
@@ -169,13 +169,23 @@ class LQR:
         # indépendamment de la physique précise). Si ce n'est pas le cas,
         # il y a une erreur dans la boucle.
 
-        A = None  # <-- à remplacer
-        B = None  # <-- à remplacer
+        A = np.zeros((4, 4))
+        
+        for j in range(4):
+            perturbation = np.zeros(4)
+            perturbation[j] = eps
+            f_plus = bot.derivarives(etat_eq + perturbation, duty_eq)
+            f_moins = bot.derivarives(etat_eq - perturbation, duty_eq)
 
+            f_plus_B = bot.derivarives(etat_eq, duty_eq + eps)
+            f_moins_B = bot.derivarives(etat_eq, duty_eq - eps)
+            
+            A[:, j] = (f_plus - f_moins) / (2*eps)
+        B = (f_plus_B - f_moins_B) / (2*eps)
+        B = B.reshape(4, 1)
         # ============================================================
         # FIN TODO 2
         # ============================================================
-
         return A, B
 
     def _build_system_matrices1(self):
@@ -212,7 +222,7 @@ class LQR:
         m_roue = config.m_roue
 
         # ============================================================
-        # TODO 5a [BONUS] : masses effectives et dénominateur couplé
+        # DONE 5a [BONUS] : masses effectives et dénominateur couplé
         # ============================================================
         # Rappel (modèle couplé chariot/pendule, comme dans robot.py) :
         #   M_total = M + m + J / R_wheel^2
@@ -221,26 +231,37 @@ class LQR:
         #
         # Ces trois quantités serviront aux coefficients ci-dessous.
 
-        M_total = None  # <-- à remplacer
-        I_total = None  # <-- à remplacer
-        det_M = None    # <-- à remplacer
+        M_total = M + m + J / R_wheel**2  # <-- à remplacer
+        I_total = I + m * l**2  # <-- à remplacer
+        det_M   = M_total * I_total - (m*l)**2    # <-- à remplacer
 
         # ============================================================
         # FIN TODO 5a
         # ============================================================
 
         # ============================================================
-        # TODO 5b : coefficients de A et B (modèle "chariot-pendule")
+        # DONE 5b : coefficients de A et B (modèle "chariot-pendule")
         # ============================================================
         # Rappel des formules à traduire en code (ce sont exactement les
         # coefficients qu'on avait dérivés analytiquement pour le modèle
         # à couple/force en entrée) :
         # Indice : np.array([[...], [...], [...], [...]]) pour une matrice
         # 4x4 ; B_v1 doit avoir la forme (4, 1).
+        A11, A12, A13, A14 = 0, 1/det_M, 0, 0
+        A21, A22, A23, A24 = 0, -I_total*bx, (m**2)*(l**2)*g, 0
+        A31, A32, A33, A34 = 0, 0, 0, 1/det_M
+        A41, A42, A43, A44 = 0, -m*l*bx, M_total*m*g*l, 0
 
-        A_v1 = None  # <-- à remplacer (matrice 4x4)
-        B_v1 = None  # <-- à remplacer (matrice 4x1)
+        A_v1 = 1/det_M*np.array([[A11, A12, A13, A14],
+                                 [A21, A22, A23, A24],
+                                 [A31, A32, A33, A34],
+                                 [A41, A42, A43, A44]])  # <-- à remplacer (matrice 4x4)
 
+        B2 = I_total/(2*R_wheel)-m*l
+        B3 = m*l/(2*R_wheel) - M_total
+        B_v1 =1/det_M*np.array([[0],[B2],[B3],[0]])  # <-- à remplacer (matrice 4x1)
+        
+    
         # ============================================================
         # FIN TODO 5b
         # ============================================================
@@ -282,7 +303,7 @@ class LQR:
         # ============================================================
 
         # ============================================================
-        # TODO 5d [BONUS] : test de contrôlabilité
+        # DONE 5d [BONUS] : test de contrôlabilité
         # ============================================================
         # Rappel : le système (A, B) est contrôlable si la matrice de
         # contrôlabilité Tc = [B, AB, A²B, A³B] est de rang plein (= 4
@@ -293,9 +314,10 @@ class LQR:
         # avec np.linalg.matrix_rank(Tc).
         #
         # Affiche le résultat : si rang == 4, le système est contrôlable.
-
-        Tc = None  # <-- à remplacer
-        rang_Tc = None  # <-- à remplacer
+        A, B = A_v1, B_v1
+        Tc = np.hstack((B, A@B, A@A@B, A@A@A@B))
+        
+        rang_Tc = np.linalg.matrix_rank(Tc)  # <-- à remplacer
 
         # ============================================================
         # FIN TODO 5d
@@ -305,7 +327,7 @@ class LQR:
               f"({'contrôlable' if rang_Tc == 4 else 'NON contrôlable'})")
 
         # On renvoie l'une des versions A_v1, B_v1 ou A_v2, B_v2
-        return A_v2, B_v2
+        return A_v1, B_v1
 
     def _build_system_matrices2(self):
         """
@@ -319,7 +341,7 @@ class LQR:
         accélération demandée, pas une force ni un rapport cyclique --
         exactement comme :
  
-            accel_lqr = -(K1*x + K2*x_dot + K3*theta + K4*theta_dot)
+            accel_lqr = -(K1*x  + K2*x_dot + K3*theta + K4*theta_dot)
  
         Système d'état:
             dx/dt = A * x + B * u   avec u = ddot{x} (m/s²)
@@ -339,7 +361,7 @@ class LQR:
         btheta = config.btheta
  
         # ============================================================
-        # TODO 6 : Modèle "accélération commandée"
+        # DONE 6 : Modèle "accélération commandée"
         # ============================================================
         # Intuition physique : ici, on suppose que la boucle bas-niveau
         # (moteur + asservissement de vitesse/couple) est assez rapide pour
@@ -361,10 +383,13 @@ class LQR:
         #
         # Indice : np.array([[...], [...], [...], [...]]) pour chacune.
  
-        I_total = None  # <-- à remplacer (étape a)
- 
-        A = None  # <-- à remplacer (étape b, matrice 4x4)
-        B = None  # <-- à remplacer (étape c, matrice 4x1)
+        I_total = config.I + m * l**2 # <-- à remplacer (étape a)
+        A12, A34, A43, A44 = I_total, I_total, m*g*l, btheta
+        A = 1/I_total*np.array([[0, A12, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, A34],
+                                [0, 0, A43, A44]])  # <-- à remplacer (étape b, matrice 4x4)
+        B = 1/I_total*np.array([[0],[1],[0],[(m*l-1)]]) # <-- à remplacer (étape c, matrice 4x1)
  
         # ============================================================
         # FIN TODO 6
@@ -385,7 +410,7 @@ class LQR:
         try:
             # Résolution de l'équation de Riccati algébrique continue
             P = linalg.solve_continuous_are(self.A, self.B, self.Q, self.R)
-
+            
             # Calcul des gains optimaux
             K = linalg.inv(self.R) @ self.B.T @ P
 
@@ -419,14 +444,14 @@ class LQR:
         #
         # self.K a la forme (1, 4) (une matrice ligne). 
         # Complète la ligne ci-dessous :
-
-        u = None  # <-- à remplacer, doit être un float (pas un tableau)
-
+        
+        u = -self.K@error # <-- à remplacer, doit être un float (pas un tableau)
+        
         # ============================================================
         # FIN TODO 3
         # ============================================================
 
-        return u
+        return u[0]
 
     def get_gains(self):
         """
@@ -476,11 +501,18 @@ class LQR:
         # Indice : pense à utiliser self.A, self.B, self.K (déjà calculés
         # dans __init__), pas des variables locales non définies.
 
-        A_cl = None       # <-- à remplacer
-        eigenvalues = None  # <-- à remplacer
-        real_parts = None   # <-- à remplacer
-        max_real_part = None  # <-- à remplacer
-        is_stable = None     # <-- à remplacer
+        if self.K is None:
+            return {
+                'stable': False,
+                'eigenvalues': np.array([]),
+                'max_real_part': np.inf
+            }
+        
+        A_cl = self.A - self.B @ self.K       # <-- à remplacer
+        eigenvalues = np.linalg.eigvals(A_cl)  # <-- à remplacer
+        real_parts = np.real(eigenvalues)   # <-- à remplacer
+        max_real_part = max(real_parts)  # <-- à remplacer
+        is_stable = (max_real_part<0)     # <-- à remplacer
 
         # ============================================================
         # FIN TODO 4
