@@ -129,15 +129,17 @@ class MainController:
                 theta_target = np.clip(theta_target,-0.17,0.17)
                 u = -theta_pid_controller.compute(theta_target,state[2])
 
+            elif self.TYPE_CONTROLEUR == "SAC":
+                            u = sac_controller.compute(state)
+                            target_theta = 0.0
+                            
+
             else : 
                 theta_target = fuzzy_pos.compute([state[0],-state[1]])
                 theta_target = np.clip(theta_target,-config.FUZZY_TARGET_THETA_MAX,config.FUZZY_TARGET_THETA_MAX)
                 u = -fuzzy_angle.compute([np.degrees(state[2] - theta_target), -state[3]])
 
-            elif self.TYPE_CONTROLEUR == "SAC":
-                u = sac_controller.compute(state)
-                target_theta = 0.0
-                
+          
             x_actuel = state[0]
             theta_actuel = state[2]
 
