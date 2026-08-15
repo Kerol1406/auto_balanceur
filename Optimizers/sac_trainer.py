@@ -88,8 +88,9 @@ def main():
         if model is None:
             # DONE 4: créer le modèle SAC avec les paramètres de config.py.
             model = SAC("MlpPolicy", 
-                env, 
-                learning_rate=config.SAC_LR, 
+                env,
+                policy_kwargs=POLICY_KWARGS,
+                learning_rate=lr, 
                 buffer_size=config.SAC_BUFFER_SIZE, 
                 batch_size=config.SAC_BATCH_SIZE, 
                 gamma=config.SAC_GAMMA, 

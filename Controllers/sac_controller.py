@@ -50,6 +50,6 @@ class SACController:
         action, _ = self.model.predict(obs_normalisee, deterministic=True)
 
         # DONE 6: extraire le duty, puis saturer dans [-self.max_duty, self.max_duty].
-        duty = np.clip(float(np.asarray(action).squeeze()), -self.max_duty, self.max_duty)
+        duty = np.clip(float(float(np.asarray(action).squeeze())), -self.max_duty, self.max_duty)
 
         return duty

@@ -109,7 +109,9 @@ class Robot:
         ddx, ddtheta = accels        
 
         # DONE 8 : renvoyer np.array([dx, ddx, dtheta, ddtheta])
-        return np.array([dx, ddx, dtheta, ddtheta])
+        test = np.array([dx, ddx, dtheta, ddtheta])
+        #print(test)
+        return test
 
     def step(self, state, duty, dt):
         """
