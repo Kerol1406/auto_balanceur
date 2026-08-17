@@ -23,14 +23,12 @@ from Controllers.main_controller import MainController
 #   "LQR"   : retour d'état optimal
 #   "FUZZY" : cascade de contrôleurs à logique floue
 #   "SAC"   : politique apprise par renforcement (Soft Actor-Critic)
-TYPE_CONTROLEUR = "FUZZY"
 TYPE_CONTROLEUR = "SAC"
-TYPE_CONTROLEUR = "LQR"
 #TYPE_CONTROLEUR = "PID"
 
 # True = lance l'optimiseur associé au contrôleur avant de simuler
 # False = utilise les paramètres déjà enregistrés dans config.py
-FAIRE_AUTOTUNING = True
+FAIRE_AUTOTUNING = False
 
 # True = affiche l'animation du robot à la fin de la simulation
 FAIRE_VISUALISATION = True
