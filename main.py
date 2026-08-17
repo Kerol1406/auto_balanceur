@@ -38,7 +38,7 @@ sim_time = 20.0
 
 # État initial : [position x (m), vitesse dx (m/s), angle theta (rad), vitesse angulaire dtheta (rad/s)]
 # Ici le robot est lâché penché de -0.2 rad (environ -11 degrés).
-state = np.array([-1.0, 0.0, -0.3, 0.0])
+state = np.array([0, 0.0, 20 * np.pi / 180, 0.0])
 
 # État visé : robot vertical, immobile, à la position x = 0
 target_state = np.zeros(4)
@@ -55,7 +55,6 @@ def main():
         state,
         target_state,
     )
-    
     controller.main()
 
 

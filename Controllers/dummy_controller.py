@@ -51,6 +51,6 @@ class DummyController:
         if target_state is None:
             target_state = np.zeros(4)
 
-        u = 0 
+        u = 0.05
 
         return float(np.clip(u, -self.u_max, self.u_max))

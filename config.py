@@ -25,15 +25,15 @@ g = 9.81
 #        cartes, capteurs), m_roue = une seule roue.
 m_roue = 0.046      # TODO : masse d'une roue (kg)
 M = 0.972           # TODO : masse totale du chariot (kg)
-m = 0.39           # TODO : masse du pendule / partie haute (kg)
-M_corps = M-2*m_roue# TODO : masse du corps sans les deux roues (utile pour l'inertie)
+m = 0.39           # TODO : masse du pendule / partie haute (kg) 
+M_corps = M-2*m_roue     # TODO : masse du corps sans les deux roues (utile pour l'inertie)
 
 # --- Dimensions (m) ---
 d = 0.17    # TODO : distance entre les deux roues (entraxe)
 h = 0.075    # TODO : hauteur du corps du robot
 b = 0.06  # TODO : demi-longueur du châssis
 l = 0.075    # TODO : distance entre l'axe des roues et le centre de gravité du pendule
-R = 0.033    # TODO : rayon des roues
+R = 0.0325    # TODO : rayon des roues
 
 # --- Inerties (kg.m^2) ---
 # TODO : écrire les formules, ne pas mettre de nombre "magique".
@@ -76,8 +76,6 @@ dt = 0.005     # Pas de temps de la simulation (s) - doit rester petit devant
                # la dynamique du robot ; c'est aussi la période d'échantillonnage
                # que devra tenir le microcontrôleur.
 t_max = 10.0   # Durée par défaut d'une simulation (s)
-CHUTE_THETA_MAX = np.pi / 2  # Angle maximal avant de considérer que le robot est tombé (rad)
-CHUTE_X_MAX = 1.5  # Position maximale avant de considérer que le robot est tombé (m)
 
 # =====================================================================
 # 4. GAINS DES CONTRÔLEURS
@@ -90,19 +88,14 @@ CHUTE_X_MAX = 1.5  # Position maximale avant de considérer que le robot est tom
 PID_Kp = 40     # TODO : à régler
 PID_Ki = 0.0
 PID_Kd = 1
-PID_Kp = 17.076114  # TODO : à régler
-PID_Ki = 2.891359
-PID_Kd = 0.222861
 
 # --- PID : boucle externe (position) ---
 # Attention : Kp doit rester petit, sinon la boucle externe demande des angles
 # cibles énormes et le robot tombe en essayant de les atteindre.
-PID_Pos_Kp = 0.155921  # TODO
-PID_Pos_Ki = 0.000266
-PID_Pos_Kd = 0.307186  # TODO
-PID_TARGET_THETA_MAX = 0.17  # Saturation de l'angle cible (rad), ~10 degrés
-PID_I_MAX = 1.0          # Saturation du terme intégral de la boucle interne
-PID_Pos_I_MAX = 0.5      # Saturation du terme intégral de la boucle externe
+PID_Pos_Kp = 0.05    # TODO
+PID_Pos_Ki = 0.0
+PID_Pos_Kd = 0.1    # TODO
+
 # --- LQR : matrices de pondération ---
 # Q pénalise les écarts d'état [x, dx, theta, dtheta], R pénalise l'effort moteur.
 LQR_Q = np.diag([159.0804,   7.5728, 109.7497,   2.0432])   #([4,1,100,1]) #([ 0.99877365, 12.98244479, 31.83928863, 33.30907998])#([4,1,100,1])   # TODO 

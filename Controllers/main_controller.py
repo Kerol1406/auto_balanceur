@@ -15,7 +15,7 @@ from robot import Robot
 from visualizer import Visualizer
 
 from .dummy_controller import DummyController
-from .pid_controller import PIDCascade
+from .pid_controller import PID
 from .lqr_controller import LQR
 from .fuzzy_controller import FuzzyController, save_cascade_lookup_tables
 # from .sac_controller import SACController        
@@ -49,35 +49,17 @@ class MainController:
         # 1. CRÉATION DU CONTRÔLEUR
         # =============================================================
         # TODO 1 : selon self.TYPE_CONTROLEUR, instancier ce qu'il faut.
-    
-        pid_cascade = None
-
-        if self.TYPE_CONTROLEUR == "PID":
-            # A. Récupération des gains (les DEUX boucles sont réglées ensemble)
-            if self.FAIRE_AUTOTUNING:
-                print(">>> Auto-Tuning de la CASCADE PID activé.")
-                best_gains = pid_optimizer.run_optimization(
-                    initial_state=self.state, target_state=self.target_state,
-                    sim_time=self.sim_time, save_to_config=True)
-            else:
-                print(">>> Gains PID chargés depuis config.py")
-                best_gains = [config.PID_Kp, config.PID_Ki, config.PID_Kd, config.PID_Pos_Kp, config.PID_Pos_Ki, config.PID_Pos_Kd]
-
-            Kp_angle, Ki_angle, Kd_angle, Kp_pos, Ki_pos, Kd_pos = best_gains
-
-            print(f"Gains PID Angle    -> Kp: {Kp_angle:.4f}, Ki: {Ki_angle:.4f}, Kd: {Kd_angle:.4f}")
-            print(f"Gains PID Position -> Kp: {Kp_pos:.4f}, Ki: {Ki_pos:.4f}, Kd: {Kd_pos:.4f}")
-
-            # Cascade complète : la MEME classe est utilisée par l'optimiseur,
-            # ce qui garantit que les gains sont évalués sur le système pour
-            # lequel ils ont été réglés.
-            pid_cascade = PIDCascade(Kp_angle, Ki_angle, Kd_angle, Kp_pos, Ki_pos, Kd_pos, config.dt)
-            # Boucle externe (le "Stratège"), floue elle aussi : mêmes règles et
-            # fonctions d'appartenance, mais entrées [x (m), dx (m/s)] et sortie
-            # = angle cible (rad)
-            
-            #raise ValueError(f"TYPE_CONTROLEUR '{self.TYPE_CONTROLEUR}' non reconnu. Utilisez 'PID', 'LQR' ou 'FUZZY'")
-
+        if self.FAIRE_AUTOTUNING:
+            if self.TYPE_CONTROLEUR == "LQR":
+                Lqr_optimizer = lqr_optimizer.LQRAutoTuner(self.state,self.target_state, sim_time=self.sim_time)
+                result = Lqr_optimizer.optimize()
+                print(result)
+                lqr_controller = LQR(result['Q'],result['R'])
+        else:
+            dummy_controller = DummyController()
+            pos_pid_controller = PID(config.PID_Pos_Kp,config.PID_Pos_Ki,config.PID_Pos_Kd,config.dt)
+            theta_pid_controller = PID(config.PID_Kp,config.PID_Ki,config.PID_Kd,config.dt)
+            lqr_controller = LQR(config.LQR_Q,config.LQR_R)
         #   
 
         # =============================================================
@@ -85,7 +67,7 @@ class MainController:
         # =============================================================
         # TODO 2 : créer le Robot, copier l'état initial, calculer le nombre de
         #          pas : steps = int(self.sim_time / config.dt)
-        bot = Robot()
+        robot = Robot()
         state = self.state
         steps = int(self.sim_time/config.dt)
 
@@ -95,50 +77,25 @@ class MainController:
         # =============================================================
         # TODO 3 : pour chaque pas i :
         for i in range(steps):
-            x_actuel = state[0]
-            theta_actuel = state[2]
-
-            target_theta = self.target_state[2]
-            u = 0.0
-            if self.TYPE_CONTROLEUR == "PID":
-                # --- CASCADE CONTROL (Double Boucle) ---
-                # La boucle de position est TOUJOURS active, y compris en
-                # auto-tuning : c'est exactement le système que l'optimiseur
-                # simule. La désactiver ici (ce que faisait la version
-                # précédente) laissait le robot dériver jusqu'à sa vitesse
-                # maximale, où les moteurs ne fournissent plus de couple —
-                # la chute était alors inévitable.
-                u, target_theta = pid_cascade.compute(state,target_x=self.target_state[0])
-            # Saturation du rapport cyclique PWM (le pont en H ne peut pas
-            # depasser 100 % de la tension batterie)
+            if self.TYPE_CONTROLEUR == "DUMMY":
+                u = dummy_controller.compute(state,self.target_state)
+            elif self.TYPE_CONTROLEUR == "PID":
+                theta_target = pos_pid_controller.compute(self.target_state[0],self.state[0])
+                theta_target = np.clip(theta_target,-0.17,0.17)
+                u = -theta_pid_controller.compute(theta_target,state[2])
+            elif self.TYPE_CONTROLEUR == "LQR":
+                u = lqr_controller.compute(state,self.target_state)
+                
             u = np.clip(u, -config.PWM_MAX, config.PWM_MAX)
-
-            # Mise à jour Physique
-            state = bot.step(state, u, config.dt)
-
-            # Affichage de l'angle à chaque itération
-            # print(f"t={i*config.dt:.2f}s | theta={np.degrees(state[2]):7.2f} deg ({state[2]:7.1f} rad) | x={state[0]:6.3f}m | u={u:6.5f}N")
-
-            # Stockage (avant le test de chute, pour garder le dernier point)
-            self.history['time'].append(i * config.dt)
+            state = robot.step(state, u, config.dt)
+            if abs(state[2]) >= np.pi/2:
+                print(f"Robot crashé à {i*config.dt:.2f}s 👾👾")
+                break
+            self.history['time'].append(i*config.dt)
             self.history['theta'].append(state[2])
             self.history['x'].append(state[0])
             self.history['u'].append(u)
-            self.history['target_theta'].append(target_theta)
-
-            # Arrêt si chute. Le seuil est celui de config.py, le MEME que
-            # celui des optimiseurs (l'ancien seuil de pi ne détectait même pas
-            # un robot couché à 90°, et l'animation montrait un robot qui
-            # tournait sur lui-même).
-            if abs(state[2]) > config.CHUTE_THETA_MAX:
-                print(f"CRASH (chute) à t={i*config.dt:.2f}s, x={state[0]:.2f} m")
-                break
-            if abs(state[0]) > config.CHUTE_X_MAX:
-                print(f"CRASH (divergence en position) à t={i*config.dt:.2f}s, x={state[0]:.2f} m")
-                break
-
-        # On garde le dernier état atteint
-              
+            self.history['target_theta'].append(self.target_state[2])               
 
         #   a) calculer la commande u selon le contrôleur choisi.
         #
